@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Centro Liderar - MKT</title>
+  <title>Centro Liderar - Demo</title>
 
   <style>
     * { box-sizing: border-box; }
@@ -235,15 +235,16 @@
 
 <body>
 <header>
-  <h1>Centro Liderar - MKT</h1>
+  <h1>Centro Liderar - MKT · Demonstração</h1>
   <p>Planejamento, atividades e resultados.</p>
 </header>
 
 <main>
   <div class="notice">
-    Protótipo local: sem login ou sincronização entre usuários.
-    Aprovações simuladas. Os dados ficam neste navegador.
-    <a href="demo.html">Ver demonstração com dados fictícios →</a>
+    <strong>Modo demonstração.</strong> Todas as contas, conteúdos e métricas
+    são fictícios e as datas acompanham o dia de hoje. Pode editar à vontade:
+    "Restaurar exemplo" volta tudo ao início. Seus dados reais (index.html)
+    não são afetados.
   </div>
 
   <nav id="fronts" class="fronts" aria-label="Empresas e frentes"></nav>
@@ -263,6 +264,7 @@
     </select>
 
     <button id="exportData">Exportar JSON</button>
+    <button id="resetDemo">Restaurar exemplo</button>
   </div>
 
   <section id="app"></section>
@@ -326,7 +328,7 @@ const METRICS = [
   "Salvamentos"
 ];
 
-const STORAGE_KEY = "centro-liderar-mkt-copy-v1";
+const STORAGE_KEY = "centro-liderar-mkt-demo-v1";
 const $ = selector => document.querySelector(selector);
 
 function uid() {
@@ -468,10 +470,255 @@ try {
   );
 }
 
+/* ---------- DADOS FICTÍCIOS ---------- */
+
+function buildDemo() {
+  const t = today();
+  const d = n => addDays(t, n);
+  let seed = 20261008;
+  const rand = (min, max) => {
+    seed = (seed * 16807) % 2147483647;
+    return min + (seed % (max - min + 1));
+  };
+
+  const accounts = [];
+  const acc = (front, name, channel, url) => {
+    const id = uid();
+    accounts.push({ id, front, name, channel, url });
+    return id;
+  };
+
+  const A = {
+    cl: acc("Centro Liderar", "@centroliderar", "Instagram",
+      "https://instagram.com/centroliderar"),
+    clYt: acc("Centro Liderar", "Centro Liderar", "YouTube",
+      "https://youtube.com/@centroliderar"),
+    jm: acc("Jaciara Mendes", "@jaciaramendes", "Instagram",
+      "https://instagram.com/jaciaramendes"),
+    jmTk: acc("Jaciara Mendes", "@jaciaramendes (TikTok)", "TikTok",
+      "https://tiktok.com/@jaciaramendes"),
+    mqa: acc("Mulher Que Age — MQA", "@mulherqueage", "Instagram",
+      "https://instagram.com/mulherqueage"),
+    db: acc("Diamante Business", "@diamantebusiness", "Instagram",
+      "https://instagram.com/diamantebusiness"),
+    mm: acc("MQA Master", "@mqamaster", "Instagram",
+      "https://instagram.com/mqamaster"),
+    eqv: acc("Empresária Que Vende", "@empresariaquevende", "Instagram",
+      "https://instagram.com/empresariaquevende")
+  };
+
+  const CL = FRONTS[0], JM = FRONTS[1], MQA = FRONTS[2],
+    DB = FRONTS[3], MM = FRONTS[4], EQV = FRONTS[5];
+
+  // [frente, conta, tipo, título, responsável, etapa, prazo, publicação
+  //  prevista, formato, publicado?, opções]
+  const C = "Conteúdo";
+  const specs = [
+    [CL, "cl", C, "5 sinais de que sua equipe precisa de um líder, não de um chefe",
+      "Carlos", "Concluído", -30, -28, "Reels", true],
+    [CL, "cl", C, "O método das 3 conversas difíceis",
+      "Jordana", "Concluído", -22, -20, "Carrossel", true],
+    [CL, "cl", C, "Depoimento de aluna: turma de setembro",
+      "Carlos", "Concluído", -15, -14, "Reels", true, { collab: "@centroliderar.alunas" }],
+    [CL, "cl", C, "Bastidores da Imersão Liderar",
+      "Jordana", "Concluído", -10, -9, "Reels", true],
+    [CL, "cl", C, "Frase da semana: liderança é exemplo",
+      "Jordana", "Concluído", -6, -5, "Estático", true],
+    [CL, "cl", C, "Convite: aula aberta de outubro",
+      "Carlos", "Aprovado", 1, 2, "Reels"],
+    [CL, "cl", C, "Liderança em tempos de IA",
+      "Jordana", "Em revisão", 2, 4, "Carrossel"],
+    [CL, "cl", C, "Erros de quem acabou de ser promovido",
+      "Carlos", "Em andamento", 3, 6, "Reels"],
+    [CL, "clYt", C, "Série Líderes que inspiram: episódio 1",
+      "Carlos", "A fazer", 8, 10, "Outro"],
+    [CL, "", "Apresentação", "Apresentação comercial: Programa Liderar 2027",
+      "Anny", "Em andamento", 5, null, "Outro"],
+    [CL, "", "Aula", "Slides da aula aberta de outubro",
+      "Jordana", "A fazer", -1, null, "Outro"],
+
+    [JM, "jm", C, "Minha história: de vendedora a empresária",
+      "Carlos", "Concluído", -25, -24, "Reels", true],
+    [JM, "jm", C, "3 decisões que mudaram meu negócio",
+      "Jordana", "Concluído", -18, -17, "Carrossel", true],
+    [JM, "jmTk", C, "Rotina de mãe e empresária, sem romantizar",
+      "Carlos", "Concluído", -12, -12, "Reels", true],
+    [JM, "jm", C, "Pensar à frente: tendências para 2027",
+      "Jordana", "Concluído", -8, -8, "Carrossel", true],
+    [JM, "jm", C, "Live: inteligência emocional nos negócios",
+      "Carlos", "Aprovado", 2, 3, "Story"],
+    [JM, "jm", C, "O que ninguém conta sobre crescer",
+      "Carlos", "Em revisão", 1, 5, "Reels"],
+    [JM, "jm", C, "Livros que li este ano",
+      "Jordana", "A fazer", 6, 9, "Carrossel"],
+
+    [MQA, "mqa", C, "Mulher que age não espera estar pronta",
+      "Jordana", "Concluído", -20, -19, "Reels", true],
+    [MQA, "mqa", C, "7 hábitos de empresárias que crescem",
+      "Jordana", "Concluído", -14, -13, "Carrossel", true],
+    [MQA, "mqa", C, "Depoimentos do encontro presencial MQA",
+      "Carlos", "Concluído", -7, -7, "Reels", true, { noMetrics: true }],
+    [MQA, "mqa", C, "Convite: encontro de novembro",
+      "Carlos", "Em revisão", 0, 3, "Estático"],
+    [MQA, "mqa", C, "Enquete: maior desafio do mês",
+      "Jordana", "Em andamento", 2, 2, "Story"],
+    [MQA, "", "Outra ação", "Lista de convidadas do encontro",
+      "Anny", "Em andamento", 4, null, "Outro"],
+    [MQA, "mqa", C, "Networking que gera negócio",
+      "Carlos", "A fazer", 9, 12, "Reels"],
+
+    [DB, "db", C, "Diamante Business: o que é e para quem é",
+      "Carlos", "Concluído", -16, -15, "Reels", true],
+    [DB, "db", C, "Case de cliente: faturamento dobrado em 6 meses",
+      "Jordana", "Em revisão", 1, 4, "Carrossel"],
+    [DB, "", "Aula", "Material da mentoria Diamante: módulo 3",
+      "Anny", "A fazer", 7, null, "Outro"],
+
+    [MM, "mm", C, "Bastidores do mastermind de outubro",
+      "Carlos", "Concluído", -11, -10, "Reels", true],
+    [MM, "mm", C, "Por que toda empresária precisa de um grupo de pares",
+      "Jordana", "Em andamento", 3, 7, "Carrossel"],
+
+    [EQV, "eqv", C, "Script de vendas pelo direct em 4 passos",
+      "Jordana", "Concluído", -21, -20, "Carrossel", true],
+    [EQV, "eqv", C, "Objeção \"está caro\": como responder",
+      "Carlos", "Concluído", -9, -9, "Reels", true],
+    [EQV, "eqv", C, "Lançamento: turma de novembro",
+      "Carlos", "Em revisão", 2, 5, "Reels"],
+    [EQV, "eqv", C, "Prova social da turma anterior",
+      "Jordana", "A fazer", -2, 1, "Estático"]
+  ];
+
+  const LEARNINGS = [
+    "Gancho nos 3 primeiros segundos segurou bem a retenção.",
+    "Muitos salvamentos: conteúdo prático funciona. Repetir o formato.",
+    "Comentários pedindo parte 2. Transformar em série.",
+    "Alcance abaixo da média. Testar outro horário (19h).",
+    "Compartilhamentos altos via direct: tema gera identificação.",
+    "Legenda longa performou melhor que a curta neste perfil.",
+    ""
+  ];
+
+  const ranges = {
+    Reels: [9000, 32000],
+    Carrossel: [3500, 12000],
+    Estático: [1500, 5000],
+    Story: [800, 2500],
+    Outro: [1000, 4000]
+  };
+
+  function metrics(format, growth) {
+    const [lo, hi] = ranges[format];
+    const reach = Math.round(rand(lo, hi) * growth);
+    const pct = (a, b) => Math.round(reach * rand(a, b) / 1000);
+    const values = [
+      reach,
+      Math.round(reach * rand(120, 210) / 100),
+      pct(35, 85),
+      pct(3, 12),
+      pct(5, 22),
+      format === "Carrossel" ? pct(20, 55) : pct(8, 30)
+    ];
+    if (rand(1, 9) === 1) values[4] = null;
+    return values;
+  }
+
+  const tasks = [];
+  const publications = [];
+
+  for (const [front, accKey, type, title, owner, stage, due, planned,
+    format, published, extra = {}] of specs) {
+    const text =
+      `Objetivo: ${type === C ? "engajar e gerar autoridade" : "apoiar a operação"}.\n` +
+      `Roteiro/legenda fictícios para "${title}".\nCTA: comente ou salve.`;
+    const material = type === C
+      ? "https://www.canva.com/design/DEMO" + rand(1000, 9999) + "/view"
+      : "https://drive.google.com/drive/folders/demo" + rand(1000, 9999);
+    const approved = ["Aprovado", "Concluído"].includes(stage) && type === C;
+    const approval = approved ? {
+      person: "Anny",
+      simulated: true,
+      date: d((planned ?? due) - 2) + "T14:00:00.000Z",
+      snapshot: { title, text, material, format }
+    } : null;
+
+    const history = [{
+      at: d(due - 6) + "T12:00:00.000Z",
+      description: `Nova → A fazer. Prazo: ${d(due)}. `
+    }];
+    if (["Em revisão", "Aprovado", "Concluído"].includes(stage)) {
+      history.push({
+        at: d(due - 3) + "T15:00:00.000Z",
+        description: `Em andamento → Em revisão. Prazo: ${d(due)}. Primeira versão pronta.`
+      });
+    }
+    if (approval) {
+      history.push({
+        at: approval.date,
+        description: `Em revisão → Aprovado. Prazo: ${d(due)}. Aprovado pela Anny.`
+      });
+    }
+
+    const task = {
+      id: uid(), front, type, title, owner, stage, format, text, material,
+      account: accKey ? A[accKey] : "",
+      due: d(due),
+      plannedDate: planned === null ? "" : d(planned),
+      originalDue: d(due),
+      approval,
+      history
+    };
+    tasks.push(task);
+
+    if (!published) continue;
+
+    const pubDate = d(planned);
+    const collections = [];
+    if (!extra.noMetrics) {
+      [7, 14].forEach((offset, index) => {
+        const date = addDays(pubDate, offset);
+        if (date > t) return;
+        collections.push({
+          id: uid(),
+          date,
+          values: metrics(format, index ? 1.25 : 1),
+          note: LEARNINGS[rand(0, LEARNINGS.length - 1)],
+          source: "manual"
+        });
+      });
+    }
+
+    publications.push({
+      id: uid(),
+      taskId: task.id,
+      front,
+      account: task.account,
+      date: pubDate,
+      url: `https://instagram.com/p/DEMO${rand(100000, 999999)}`,
+      publisher: rand(0, 1) ? "Jordana" : "Carlos",
+      collaborators: extra.collab || "",
+      title,
+      format,
+      approvedVersion: JSON.parse(JSON.stringify(approval)),
+      collections
+    });
+  }
+
+  return { version: 1, accounts, tasks, publications };
+}
+
+let hasSavedDemo = false;
+try { hasSavedDemo = !!localStorage.getItem(STORAGE_KEY); } catch {}
+
+if (!storageBlocked && !hasSavedDemo) {
+  state = buildDemo();
+  persist();
+}
+
 let currentFront = FRONTS[0];
 let currentTab = "Cronograma";
 let currentMonth = today().slice(0, 7);
-let periodStart = today().slice(0, 7) + "-01";
+let periodStart = addDays(today(), -60);
 let periodEnd = today();
 
 function persist() {
@@ -1360,6 +1607,15 @@ $("#newTask").onclick = () => taskForm();
 $("#newAccount").onclick = accountForm;
 $("#accountFilter").onchange = render;
 $("#personFilter").onchange = render;
+
+$("#resetDemo").onclick = () => {
+  if (!confirm("Apagar as alterações e recarregar os dados fictícios?")) return;
+  storageBlocked = false;
+  state = buildDemo();
+  persist();
+  updateAccountFilter();
+  render();
+};
 
 $("#exportData").onclick = () => {
   const blob = new Blob(
