@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Centro Liderar - MKT</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --primary: #304d83;
+      --background: #f4f6fa;
+      --border: #dce2ed;
+      --text: #243248;
+      --muted: #6b788d;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font: 15px system-ui, sans-serif;
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    button {
+      cursor: pointer;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      color: var(--text);
+    }
+
+    button:hover { background: #edf1f9; }
+
+    button.active, .primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    header {
+      background: #202e48;
+      color: white;
+      padding: 28px 4vw;
+    }
+
+    header h1 { margin: 0; font-size: 26px; }
+    header p { color: #c5d0e3; margin-bottom: 0; }
+    main { padding: 24px 4vw; }
+
+    nav, .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 16px 0;
+      align-items: center;
+    }
+
+    .fronts {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .fronts button { white-space: nowrap; }
+
+    .notice {
+      background: #fff1cb;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    input, select, textarea {
+      padding: 10px;
+      border: 1px solid #cdd5e2;
+      border-radius: 7px;
+      background: white;
+      color: var(--text);
+      max-width: 100%;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .panel, .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      margin: 12px 0;
+    }
+
+    h3 { font-size: 16px; }
+    small, .muted { color: var(--muted); }
+    .scroll { overflow-x: auto; }
+    .empty { padding: 24px; color: var(--muted); }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(235px, 1fr));
+      gap: 14px;
+      overflow-x: auto;
+      padding-bottom: 15px;
+    }
+
+    .column {
+      background: #e8edf5;
+      padding: 12px;
+      border-radius: 12px;
+      min-height: 330px;
+    }
+
+    .card h3 { line-height: 1.4; }
+    .card button { margin-top: 7px; }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      background: #e9edf5;
+    }
+
+    .Anny { background: #ecdefc; color: #70408f; }
+    .Carlos { background: #dcecff; color: #2c588d; }
+    .Jordana { background: #ffe6d2; color: #915124; }
+    .late { color: #b83f32; }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(110px, 1fr));
+      gap: 6px;
+      min-width: 800px;
+    }
+
+    .day {
+      padding: 8px;
+      min-height: 140px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .day > button { padding: 4px 8px; }
+
+    .event {
+      display: block;
+      width: 100%;
+      text-align: left;
+      font-size: 12px;
+      padding: 8px;
+      margin-top: 7px;
+      border-left: 3px solid #5376b7;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 14px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 30px;
+      margin: 10px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 13px;
+      border-bottom: 1px solid #edf0f6;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    a { color: var(--primary); }
+
+    .bar {
+      height: 10px;
+      background: #5376b7;
+      border-radius: 8px;
+      margin: 8px 0;
+    }
+
+    dialog {
+      width: 720px;
+      max-width: 95vw;
+      max-height: 90vh;
+      border: none;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 20px 100px #0003;
+    }
+
+    dialog::backdrop { background: #17253c88; }
+
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .full { grid-column: 1 / -1; }
+    textarea { min-height: 100px; }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    details { margin: 20px 0; }
+
+    @media (max-width: 600px) {
+      main { padding: 15px; }
+      form { grid-template-columns: 1fr; }
+      form > * { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Centro Liderar - MKT</h1>
+  <p>Planejamento, atividades e resultados.</p>
+</header>
+
+<main>
+  <div class="notice">
+    Protótipo local: sem login ou sincronização entre usuários.
+    Aprovações simuladas. Os dados ficam neste navegador.
+  </div>
+
+  <nav id="fronts" class="fronts" aria-label="Empresas e frentes"></nav>
+  <nav id="tabs" aria-label="Áreas do sistema"></nav>
+
+  <div class="toolbar">
+    <button id="newTask" class="primary">+ Nova atividade</button>
+    <button id="newAccount">+ Conta social</button>
+
+    <select id="accountFilter" aria-label="Filtrar conta"></select>
+
+    <select id="personFilter" aria-label="Filtrar responsável">
+      <option value="">Toda a equipe</option>
+      <option>Anny</option>
+      <option>Carlos</option>
+      <option>Jordana</option>
+    </select>
+
+    <button id="exportData">Exportar JSON</button>
+  </div>
+
+  <section id="app"></section>
+
+  <details>
+    <summary>Como usar</summary>
+    <p>
+      Cadastre uma conta social. Crie conteúdos no calendário ou atividades
+      no Kanban. Envie a criação para revisão e registre a aprovação simulada
+      da Anny. Depois, registre a publicação.
+    </p>
+    <p>
+      Em Insights, registre as métricas a partir de sete dias da publicação.
+      O dashboard usa apenas a coleta mais recente de cada post.
+    </p>
+    <p>
+      Os links do Canva e Drive abrem os arquivos originais.
+      Este protótipo não publica nas redes sociais, não integra APIs e não
+      congela os arquivos externos. Exporte os dados antes de limpar o navegador.
+    </p>
+  </details>
+</main>
+
+<dialog id="modal"></dialog>
+
+<script>
+"use strict";
+
+/*
+  PROTÓTIPO LOCAL
+  Para produção: implementar backend, banco de dados, autenticação,
+  permissões, backups e versionamento real dos arquivos.
+*/
+
+const FRONTS = [
+  "Centro Liderar",
+  "Jaciara Mendes",
+  "Mulher Que Age — MQA",
+  "Diamante Business",
+  "MQA Master",
+  "Empresária Que Vende"
+];
+
+const PEOPLE = ["Anny", "Carlos", "Jordana"];
+const TABS = ["Cronograma", "Atividades", "Insights", "Dashboard"];
+
+const STAGES = [
+  "A fazer",
+  "Em andamento",
+  "Em revisão",
+  "Aprovado",
+  "Concluído"
+];
+
+const METRICS = [
+  "Alcance",
+  "Visualizações",
+  "Curtidas",
+  "Comentários",
+  "Compartilhamentos",
+  "Salvamentos"
+];
+
+const STORAGE_KEY = "centro-liderar-mkt-copy-v1";
+const $ = selector => document.querySelector(selector);
+
+function uid() {
+  return crypto.randomUUID();
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[character]);
+}
+
+function today() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Fortaleza",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+
+  const part = type => parts.find(item => item.type === type).value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
+function addDays(date, quantity) {
+  const value = new Date(date + "T12:00:00Z");
+  value.setUTCDate(value.getUTCDate() + quantity);
+  return value.toISOString().slice(0, 10);
+}
+
+function daysBetween(start, end) {
+  return Math.round(
+    (
+      Date.parse(end + "T12:00:00Z") -
+      Date.parse(start + "T12:00:00Z")
+    ) / 86400000
+  );
+}
+
+function formatDate(date) {
+  return date ? date.split("-").reverse().join("/") : "—";
+}
+
+function safeURL(value) {
+  try {
+    const url = new URL(value);
+    return ["https:", "http:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function canonicalURL(value) {
+  const url = new URL(value);
+  return url.origin + url.pathname.replace(/\/$/, "");
+}
+
+function linkHTML(value) {
+  const url = safeURL(value);
+
+  return url
+    ? `<a href="${escapeHTML(url)}" target="_blank"
+          rel="noopener noreferrer">Abrir ↗</a>`
+    : "—";
+}
+
+function options(values, selected) {
+  return values.map(value => `
+    <option value="${escapeHTML(value)}"
+      ${value === selected ? "selected" : ""}>
+      ${escapeHTML(value)}
+    </option>
+  `).join("");
+}
+
+function field(label, name, value = "", type = "text", required = false) {
+  return `
+    <label>
+      ${label}
+      <input
+        name="${name}"
+        type="${type}"
+        value="${escapeHTML(value)}"
+        ${required ? "required" : ""}
+      >
+    </label>
+  `;
+}
+
+function formActions() {
+  return `
+    <div class="full actions">
+      <button type="button" data-close>Cancelar</button>
+      <button type="submit" class="primary">Salvar</button>
+    </div>
+  `;
+}
+
+function badge(person) {
+  return `<span class="badge ${escapeHTML(person)}">
+    ${escapeHTML(person)}
+  </span>`;
+}
+
+let state = {
+  version: 1,
+  accounts: [],
+  tasks: [],
+  publications: []
+};
+
+let storageBlocked = false;
+
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+
+  if (saved) {
+    const parsed = JSON.parse(saved);
+
+    if (
+      parsed.version !== 1 ||
+      !["accounts", "tasks", "publications"]
+        .every(key => Array.isArray(parsed[key]))
+    ) {
+      throw new Error("Formato inválido");
+    }
+
+    state = parsed;
+  }
+} catch {
+  storageBlocked = true;
+  alert(
+    "Não foi possível ler os dados salvos. A gravação foi bloqueada " +
+    "para evitar sobrescrever os registros existentes."
+  );
+}
+
+let currentFront = FRONTS[0];
+let currentTab = "Cronograma";
+let currentMonth = today().slice(0, 7);
+let periodStart = today().slice(0, 7) + "-01";
+let periodEnd = today();
+
+function persist() {
+  if (storageBlocked) {
+    alert("A gravação está bloqueada. Recupere os dados existentes primeiro.");
+    return false;
+  }
+
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    return true;
+  } catch {
+    alert("Não foi possível salvar. Exporte uma cópia dos dados.");
+    return false;
+  }
+}
+
+function accountsForFront() {
+  return state.accounts.filter(account => account.front === currentFront);
+}
+
+function accountName(accountId) {
+  return state.accounts.find(account => account.id === accountId)?.name
+    || "Sem conta";
+}
+
+function filteredTasks() {
+  const account = $("#accountFilter").value;
+  const person = $("#personFilter").value;
+
+  return state.tasks.filter(task =>
+    task.front === currentFront &&
+    (!account || task.account === account) &&
+    (!person || task.owner === person)
+  );
+}
+
+function filteredPublications() {
+  const person = $("#personFilter").value;
+  const account = $("#accountFilter").value;
+
+  return state.publications.filter(publication => {
+    const task = state.tasks.find(item => item.id === publication.taskId);
+
+    return publication.front === currentFront &&
+      (!account || publication.account === account) &&
+      (!person || task?.owner === person);
+  });
+}
+
+function latestCollection(publication) {
+  return [...publication.collections]
+    .sort((a, b) => b.date.localeCompare(a.date))[0];
+}
+
+function analysisPending(publication) {
+  return addDays(publication.date, 7) <= today() &&
+    publication.collections.length === 0;
+}
+
+function updateAccountFilter() {
+  const previous = $("#accountFilter").value;
+
+  $("#accountFilter").innerHTML = `
+    <option value="">Todas as contas</option>
+    ${accountsForFront().map(account => `
+      <option value="${account.id}">
+        ${escapeHTML(account.name)}
+      </option>
+    `).join("")}
+  `;
+
+  if (accountsForFront().some(account => account.id === previous)) {
+    $("#accountFilter").value = previous;
+  }
+}
+
+function openModal(html) {
+  $("#modal").innerHTML = html;
+  $("#modal").showModal();
+}
+
+function render() {
+  $("#fronts").innerHTML = FRONTS.map(front => `
+    <button
+      data-front="${escapeHTML(front)}"
+      class="${front === currentFront ? "active" : ""}">
+      ${escapeHTML(front)}
+    </button>
+  `).join("");
+
+  $("#tabs").innerHTML = TABS.map(tab => `
+    <button data-tab="${tab}"
+      class="${tab === currentTab ? "active" : ""}">
+      ${tab}
+    </button>
+  `).join("");
+
+  if (currentTab === "Cronograma") renderCalendar();
+  if (currentTab === "Atividades") renderKanban();
+  if (currentTab === "Insights") renderInsights();
+  if (currentTab === "Dashboard") renderDashboard();
+}
+
+function renderCalendar() {
+  const [year, month] = currentMonth.split("-").map(Number);
+  const offset = (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7;
+  const numberOfDays = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const tasks = filteredTasks();
+
+  $("#app").innerHTML = `
+    <div class="toolbar">
+      <button data-month="-1" aria-label="Mês anterior">←</button>
+      <input id="monthPicker" type="month" value="${currentMonth}"
+        aria-label="Selecionar mês">
+      <button data-month="1" aria-label="Próximo mês">→</button>
+      <small>Conteúdos por data prevista de publicação</small>
+    </div>
+
+    <div class="scroll">
+      <div class="calendar">
+        ${["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+          .map(day => `<strong>${day}</strong>`).join("")}
+
+        ${"<div></div>".repeat(offset)}
+
+        ${Array.from({ length: numberOfDays }, (_, index) => {
+          const date = `${currentMonth}-${String(index + 1).padStart(2, "0")}`;
+
+          const contents = tasks.filter(task =>
+            task.type === "Conteúdo" && task.plannedDate === date
+          );
+
+          return `
+            <div class="day">
+              <button data-new-date="${date}">
+                ${index + 1} +
+              </button>
+
+              ${contents.map(task => `
+                <button class="event" data-task="${task.id}">
+                  ${escapeHTML(task.title)}
+                  <br>${badge(task.owner)}
+                  <br><small>${escapeHTML(task.stage)}</small>
+                </button>
+              `).join("")}
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+
+  $("#monthPicker").onchange = event => {
+    if (event.target.value) {
+      currentMonth = event.target.value;
+      render();
+    }
+  };
+}
+
+function renderKanban() {
+  const tasks = filteredTasks();
+
+  $("#app").innerHTML = `
+    <div class="board">
+      ${STAGES.map(stage => {
+        const items = tasks.filter(task => task.stage === stage);
+
+        return `
+          <section class="column">
+            <h3>${stage} · ${items.length}</h3>
+
+            ${items.map(task => `
+              <article class="card">
+                ${badge(task.owner)}
+                <h3>${escapeHTML(task.title)}</h3>
+
+                <small>
+                  ${escapeHTML(task.type)} ·
+                  ${escapeHTML(accountName(task.account))}
+                </small>
+
+                <p class="${
+                  task.due < today() && task.stage !== "Concluído"
+                    ? "late" : ""
+                }">
+                  Prazo: ${formatDate(task.due)}
+                </p>
+
+                <button data-task="${task.id}">Editar atividade</button>
+
+                ${task.type === "Conteúdo" && task.approval ? `
+                  <button data-publish="${task.id}">
+                    Registrar publicação
+                  </button>
+                ` : ""}
+              </article>
+            `).join("")}
+          </section>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function renderInsights() {
+  const publications = filteredPublications();
+
+  $("#app").innerHTML = `
+    <div class="panel scroll">
+      <h3>Resultados por publicação</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Conteúdo</th>
+            <th>Conta</th>
+            <th>Publicação</th>
+            <th>Analisar a partir de</th>
+            <th>Situação</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${publications.map(publication => `
+            <tr>
+              <td>
+                ${escapeHTML(publication.title)}
+                ${linkHTML(publication.url)}
+              </td>
+              <td>${escapeHTML(accountName(publication.account))}</td>
+              <td>${formatDate(publication.date)}</td>
+              <td>${formatDate(addDays(publication.date, 7))}</td>
+              <td>${
+                publication.collections.length
+                  ? "Analisado"
+                  : analysisPending(publication)
+                    ? "Pendente"
+                    : "Aguardando D+7"
+              }</td>
+              <td>
+                <button data-insight="${publication.id}">Métricas</button>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+
+      ${publications.length ? "" : `
+        <p class="empty">Nenhuma publicação registrada nesta seleção.</p>
+      `}
+    </div>
+  `;
+}
+
+function renderDashboard() {
+  const publications = filteredPublications().filter(publication =>
+    (!periodStart || publication.date >= periodStart) &&
+    (!periodEnd || publication.date <= periodEnd)
+  );
+
+  const analyzed = publications
+    .map(publication => ({
+      publication,
+      collection: latestCollection(publication)
+    }))
+    .filter(item => item.collection);
+
+  function aggregate(index) {
+    const values = analyzed
+      .map(item => item.collection.values[index])
+      .filter(value => value !== null);
+
+    return {
+      count: values.length,
+      total: values.length
+        ? values.reduce((sum, value) => sum + value, 0)
+        : null
+    };
+  }
+
+  const completeInteractions = analyzed.filter(item =>
+    [2, 3, 4, 5].every(index => item.collection.values[index] !== null)
+  );
+
+  const interactions = completeInteractions.reduce(
+    (sum, item) => sum +
+      item.collection.values.slice(2).reduce((a, b) => a + b, 0),
+    0
+  );
+
+  const rateItems = completeInteractions.filter(item =>
+    item.collection.values[0] !== null
+  );
+
+  const rateReach = rateItems.reduce(
+    (sum, item) => sum + item.collection.values[0], 0
+  );
+
+  const rateInteractions = rateItems.reduce(
+    (sum, item) => sum +
+      item.collection.values.slice(2).reduce((a, b) => a + b, 0),
+    0
+  );
+
+  const cards = [
+    ["Publicações", publications.length, "Publicadas no período"],
+    ["Com análise", analyzed.length, `de ${publications.length} publicações`],
+    [
+      "Análises pendentes",
+      publications.filter(analysisPending).length,
+      "Já completaram sete dias"
+    ],
+    ...METRICS.map((metric, index) => {
+      const result = aggregate(index);
+
+      return [
+        index === 0 ? "Alcance somado, não único" : metric,
+        result.total === null ? "—" : result.total.toLocaleString("pt-BR"),
+        `${result.count} de ${publications.length} com dado`
+      ];
+    }),
+    [
+      "Interações",
+      completeInteractions.length ? interactions.toLocaleString("pt-BR") : "—",
+      `${completeInteractions.length} posts com os 4 componentes`
+    ],
+    [
+      "Interação / alcance",
+      rateReach > 0
+        ? (rateInteractions / rateReach * 100).toFixed(2) + "%"
+        : "—",
+      `${rateItems.length} posts com dados completos`
+    ]
+  ];
+
+  const ranking = analyzed
+    .filter(item => item.collection.values[1] !== null)
+    .sort((a, b) => b.collection.values[1] - a.collection.values[1]);
+
+  const maximum = Math.max(
+    1,
+    ...ranking.map(item => item.collection.values[1])
+  );
+
+  $("#app").innerHTML = `
+    <div class="toolbar">
+      <label>
+        Publicados a partir de
+        <input id="periodStart" type="date" value="${periodStart}">
+      </label>
+      <label>
+        Até
+        <input id="periodEnd" type="date" value="${periodEnd}">
+      </label>
+    </div>
+
+    <p class="muted">
+      Uma coleta por publicação: a mais recente.
+      Os valores são acumulados até a coleta.
+      A soma dos alcances não representa pessoas únicas da conta.
+    </p>
+
+    ${periodStart && periodEnd && periodStart > periodEnd ? `
+      <p class="late">A data inicial está depois da final.</p>
+    ` : ""}
+
+    <div class="stats">
+      ${cards.map(([label, value, description]) => `
+        <div class="panel stat">
+          <small>${label}</small>
+          <strong>${value}</strong>
+          <small>${description}</small>
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="panel">
+      <h3>Conteúdos por visualizações</h3>
+
+      ${ranking.map(item => `
+        <p>
+          ${escapeHTML(item.publication.title)} ·
+          ${item.collection.values[1].toLocaleString("pt-BR")}
+        </p>
+
+        <div class="bar" style="width:${
+          item.collection.values[1] / maximum * 100
+        }%"></div>
+
+        <small>
+          ${escapeHTML(accountName(item.publication.account))} ·
+          Coleta em ${formatDate(item.collection.date)} ·
+          ${daysBetween(item.publication.date, item.collection.date)}
+          dias de exposição
+        </small>
+      `).join("") || `
+        <p class="empty">Registre métricas para visualizar o ranking.</p>
+      `}
+    </div>
+  `;
+
+  $("#periodStart").onchange = event => {
+    periodStart = event.target.value;
+    render();
+  };
+
+  $("#periodEnd").onchange = event => {
+    periodEnd = event.target.value;
+    render();
+  };
+}
+
+function taskForm(taskId, date) {
+  const existing = state.tasks.find(task => task.id === taskId);
+
+  const task = existing || {
+    type: "Conteúdo",
+    owner: "Carlos",
+    stage: "A fazer",
+    due: date || today(),
+    plannedDate: date || "",
+    account: "",
+    format: "Reels"
+  };
+
+  openModal(`
+    <h2>${existing ? "Editar atividade" : "Nova atividade"}</h2>
+
+    <form id="taskForm">
+      ${field("Título", "title", task.title, "text", true)}
+
+      <label>
+        Tipo
+        <select name="type">
+          ${options(
+            ["Conteúdo", "Apresentação", "Aula", "Outra ação"],
+            task.type
+          )}
+        </select>
+      </label>
+
+      <label>
+        Responsável
+        <select name="owner">${options(PEOPLE, task.owner)}</select>
+      </label>
+
+      <label>
+        Conta social
+        <select name="account">
+          <option value="">Sem conta</option>
+          ${accountsForFront().map(account => `
+            <option value="${account.id}"
+              ${account.id === task.account ? "selected" : ""}>
+              ${escapeHTML(account.name)}
+            </option>
+          `).join("")}
+        </select>
+      </label>
+
+      ${field("Prazo", "due", task.due, "date", true)}
+      ${field("Publicação prevista", "plannedDate", task.plannedDate, "date")}
+
+      <label>
+        Etapa
+        <select name="stage">${options(STAGES, task.stage)}</select>
+      </label>
+
+      <label>
+        Formato
+        <select name="format">
+          ${options(
+            ["Reels", "Carrossel", "Estático", "Story", "Outro"],
+            task.format
+          )}
+        </select>
+      </label>
+
+      <label class="full">
+        Briefing, roteiro e legenda
+        <textarea name="text" required>${escapeHTML(task.text)}</textarea>
+      </label>
+
+      ${field("Link do Canva ou Drive", "material", task.material, "url")}
+
+      <label>
+        Decisão simulada da Anny
+        <select name="decision">
+          <option value="">Sem decisão</option>
+          <option value="approve">Aprovar</option>
+          <option value="adjust">Solicitar ajustes</option>
+        </select>
+      </label>
+
+      <label class="full">
+        Comentário
+        <textarea name="note"></textarea>
+      </label>
+
+      ${formActions()}
+    </form>
+
+    <details>
+      <summary>Histórico</summary>
+      ${(task.history || []).map(item => `
+        <p>${escapeHTML(item.at)} · ${escapeHTML(item.description)}</p>
+      `).join("") || "<p>Sem alterações registradas.</p>"}
+    </details>
+  `);
+
+  $("#taskForm").onsubmit = event => {
+    event.preventDefault();
+    if (storageBlocked) return alert("Gravação bloqueada.");
+
+    const data = Object.fromEntries(new FormData(event.target));
+    const decision = data.decision;
+    const note = data.note;
+
+    delete data.decision;
+    delete data.note;
+
+    if (data.material && !safeURL(data.material)) {
+      return alert("Use um link HTTP ou HTTPS válido.");
+    }
+
+    const contentChanged = existing &&
+      ["title", "text", "material", "format", "type"]
+        .some(key => data[key] !== existing[key]);
+
+    let approval = existing?.approval || null;
+
+    if (contentChanged) approval = null;
+
+    if (decision === "approve") {
+      if (!existing || existing.stage !== "Em revisão") {
+        return alert("Envie a atividade para Em revisão antes de aprovar.");
+      }
+
+      if (contentChanged) {
+        return alert("Salve primeiro a versão alterada. Depois aprove.");
+      }
+
+      approval = {
+        person: "Anny",
+        simulated: true,
+        date: new Date().toISOString(),
+        snapshot: {
+          title: data.title,
+          text: data.text,
+          material: data.material,
+          format: data.format
+        }
+      };
+
+      data.stage = "Aprovado";
+    }
+
+    if (decision === "adjust") {
+      if (!note.trim()) return alert("Descreva os ajustes necessários.");
+
+      approval = null;
+      data.stage = "Em andamento";
+    }
+
+    if (
+      contentChanged &&
+      ["Aprovado", "Concluído"].includes(data.stage)
+    ) {
+      data.stage = "Em revisão";
+    }
+
+    if (data.stage === "Aprovado" && !approval) {
+      return alert("Registre a aprovação da Anny para usar essa etapa.");
+    }
+
+    if (
+      data.type === "Conteúdo" &&
+      data.stage === "Concluído" &&
+      !approval
+    ) {
+      return alert("O conteúdo precisa de aprovação para concluir a criação.");
+    }
+
+    const record = {
+      ...data,
+      id: existing?.id || uid(),
+      front: currentFront,
+      originalDue: existing?.originalDue || data.due,
+      approval,
+      history: [
+        ...(existing?.history || []),
+        {
+          at: new Date().toISOString(),
+          description:
+            `${existing?.stage || "Nova"} → ${data.stage}. ` +
+            `Prazo: ${data.due}. ${note}`
+        }
+      ]
+    };
+
+    if (existing) {
+      state.tasks = state.tasks.map(item =>
+        item.id === existing.id ? record : item
+      );
+    } else {
+      state.tasks.push(record);
+    }
+
+    persist();
+    $("#modal").close();
+    render();
+  };
+}
+
+function accountForm() {
+  openModal(`
+    <h2>Nova conta · ${escapeHTML(currentFront)}</h2>
+
+    <form id="accountForm">
+      ${field("Nome / @perfil", "name", "", "text", true)}
+
+      <label>
+        Canal
+        <select name="channel">
+          ${options(["Instagram", "TikTok", "YouTube", "LinkedIn", "Outro"])}
+        </select>
+      </label>
+
+      ${field("Link do perfil", "url", "", "url", true)}
+      ${formActions()}
+    </form>
+  `);
+
+  $("#accountForm").onsubmit = event => {
+    event.preventDefault();
+    if (storageBlocked) return alert("Gravação bloqueada.");
+
+    const data = Object.fromEntries(new FormData(event.target));
+
+    if (!safeURL(data.url)) return alert("Informe um link válido.");
+
+    if (accountsForFront().some(account =>
+      canonicalURL(account.url) === canonicalURL(data.url)
+    )) {
+      return alert("Esta conta já foi cadastrada nesta frente.");
+    }
+
+    state.accounts.push({
+      ...data,
+      id: uid(),
+      front: currentFront
+    });
+
+    persist();
+    updateAccountFilter();
+    $("#modal").close();
+    render();
+  };
+}
+
+function publicationForm(taskId) {
+  const task = state.tasks.find(item => item.id === taskId);
+
+  if (!task?.approval) return alert("Aprovação necessária.");
+
+  openModal(`
+    <h2>Registrar publicação</h2>
+    <p>${escapeHTML(task.title)}</p>
+
+    <form id="publicationForm">
+      <label>
+        Conta principal
+        <select name="account" required>
+          <option value="">Selecione</option>
+          ${accountsForFront().map(account => `
+            <option value="${account.id}">
+              ${escapeHTML(account.name)}
+            </option>
+          `).join("")}
+        </select>
+      </label>
+
+      ${field("Data efetiva", "date", today(), "date", true)}
+      ${field("Link da publicação", "url", "", "url", true)}
+
+      <label>
+        Quem publicou
+        <select name="publisher">${options(PEOPLE)}</select>
+      </label>
+
+      <label class="full">
+        Perfis colaboradores, se houver
+        <input name="collaborators" placeholder="@perfil1, @perfil2">
+      </label>
+
+      <small class="full">
+        Registre um collab apenas uma vez. Neste protótipo,
+        os resultados ficam atribuídos à conta principal.
+      </small>
+
+      ${formActions()}
+    </form>
+  `);
+
+  $("#publicationForm").onsubmit = event => {
+    event.preventDefault();
+    if (storageBlocked) return alert("Gravação bloqueada.");
+
+    const data = Object.fromEntries(new FormData(event.target));
+    const url = safeURL(data.url);
+
+    if (!url) return alert("Informe um link válido.");
+    if (data.date > today()) return alert("A publicação não pode ser futura.");
+
+    if (state.publications.some(publication =>
+      canonicalURL(publication.url) === canonicalURL(url)
+    )) {
+      return alert("Esta publicação já está cadastrada.");
+    }
+
+    state.publications.push({
+      ...data,
+      url,
+      id: uid(),
+      taskId: task.id,
+      front: currentFront,
+      title: task.title,
+      format: task.format,
+      approvedVersion: JSON.parse(JSON.stringify(task.approval)),
+      collections: []
+    });
+
+    persist();
+    $("#modal").close();
+    render();
+  };
+}
+
+function insightForm(publicationId) {
+  const publication = state.publications.find(item =>
+    item.id === publicationId
+  );
+
+  openModal(`
+    <h2>Insights · ${escapeHTML(publication.title)}</h2>
+
+    <p>
+      Análise a partir de ${formatDate(addDays(publication.date, 7))}.
+      Campo vazio significa “não informado”.
+    </p>
+
+    <form id="insightForm">
+      ${field("Data da coleta", "date", today(), "date", true)}
+
+      ${METRICS.map((metric, index) => `
+        <label>
+          ${metric}
+          <input
+            name="metric${index}"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="Não informado">
+        </label>
+      `).join("")}
+
+      <label class="full">
+        Observações e aprendizados
+        <textarea name="note"></textarea>
+      </label>
+
+      ${formActions()}
+    </form>
+
+    <details open>
+      <summary>Coletas anteriores</summary>
+
+      ${publication.collections.map(collection => `
+        <div class="panel">
+          <strong>
+            ${formatDate(collection.date)} ·
+            ${daysBetween(publication.date, collection.date)}
+            dias de exposição
+          </strong>
+
+          <p>
+            ${METRICS.map((metric, index) =>
+              `${metric}: ${collection.values[index] ?? "—"}`
+            ).join(" · ")}
+          </p>
+
+          <p>${escapeHTML(collection.note)}</p>
+        </div>
+      `).join("") || "<p>Nenhuma coleta registrada.</p>"}
+    </details>
+  `);
+
+  $("#insightForm").onsubmit = event => {
+    event.preventDefault();
+    if (storageBlocked) return alert("Gravação bloqueada.");
+
+    const data = Object.fromEntries(new FormData(event.target));
+
+    if (
+      data.date < addDays(publication.date, 7) ||
+      data.date > today()
+    ) {
+      return alert("Use uma data entre publicação + 7 dias e hoje.");
+    }
+
+    if (publication.collections.some(item => item.date === data.date)) {
+      return alert("Já existe uma coleta para esta data.");
+    }
+
+    const values = METRICS.map((_, index) =>
+      data[`metric${index}`] === ""
+        ? null
+        : Number(data[`metric${index}`])
+    );
+
+    if (values.every(value => value === null)) {
+      return alert("Informe ao menos uma métrica.");
+    }
+
+    if (values.some(value =>
+      value !== null && (!Number.isSafeInteger(value) || value < 0)
+    )) {
+      return alert("Use números inteiros não negativos.");
+    }
+
+    publication.collections.push({
+      id: uid(),
+      date: data.date,
+      values,
+      note: data.note,
+      source: "manual"
+    });
+
+    persist();
+    $("#modal").close();
+    render();
+  };
+}
+
+document.addEventListener("click", event => {
+  const button = event.target.closest("button");
+  if (!button) return;
+
+  const data = button.dataset;
+
+  if (data.front) {
+    currentFront = data.front;
+    updateAccountFilter();
+    render();
+  }
+
+  if (data.tab) {
+    currentTab = data.tab;
+    render();
+  }
+
+  if (data.task) taskForm(data.task);
+  if (data.newDate) taskForm(null, data.newDate);
+  if (data.publish) publicationForm(data.publish);
+  if (data.insight) insightForm(data.insight);
+
+  if (data.month) {
+    const [year, month] = currentMonth.split("-").map(Number);
+
+    currentMonth = new Date(Date.UTC(
+      year,
+      month - 1 + Number(data.month),
+      1
+    )).toISOString().slice(0, 7);
+
+    render();
+  }
+
+  if (button.hasAttribute("data-close")) $("#modal").close();
+});
+
+$("#newTask").onclick = () => taskForm();
+$("#newAccount").onclick = accountForm;
+$("#accountFilter").onchange = render;
+$("#personFilter").onchange = render;
+
+$("#exportData").onclick = () => {
+  const blob = new Blob(
+    [JSON.stringify(state, null, 2)],
+    { type: "application/json" }
+  );
+
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+
+  anchor.href = url;
+  anchor.download = `centro-liderar-${today()}.json`;
+  anchor.click();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+updateAccountFilter();
+render();
+</script>
+</body>
+</html>
