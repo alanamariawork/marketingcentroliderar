@@ -5,51 +5,111 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Centro Liderar - MKT</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Tenor+Sans&display=swap" rel="stylesheet">
+
   <style>
+    /* Identidade visual Mulher Que Age (manual mídias MQA13):
+       marrom #6b523b · azul-petróleo #1e3b4a · laranja #f9843e · branco;
+       Tenor Sans nos títulos, Montserrat no texto. */
     * { box-sizing: border-box; }
 
     :root {
-      --primary: #304d83;
-      --background: #f4f6fa;
-      --border: #dce2ed;
-      --text: #243248;
-      --muted: #6b788d;
+      --navy: #1e3b4a;
+      --brown: #6b523b;
+      --orange: #f9843e;
+      --orange-dark: #d9692a;
+      --gold: #c9a46a;
+      --primary: var(--navy);
+      --background: #f7f1ea;
+      --surface: #ffffff;
+      --column: #efe5d9;
+      --border: #e6d9ca;
+      --text: #1e3b4a;
+      --muted: #8a7461;
+      --title: "Tenor Sans", Georgia, serif;
     }
 
     body {
       margin: 0;
       background: var(--background);
       color: var(--text);
-      font: 15px system-ui, sans-serif;
+      font: 15px "Montserrat", system-ui, sans-serif;
     }
 
     button, input, select, textarea { font: inherit; }
 
     button {
       cursor: pointer;
-      padding: 10px 14px;
+      padding: 10px 16px;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      background: white;
+      border-radius: 999px;
+      background: var(--surface);
       color: var(--text);
+      font-weight: 500;
+      transition: background .15s, border-color .15s, color .15s;
     }
 
-    button:hover { background: #edf1f9; }
+    button:hover { background: #fbf3ea; border-color: var(--gold); }
 
-    button.active, .primary {
-      background: var(--primary);
+    button.active {
+      background: var(--navy);
       color: white;
-      border-color: var(--primary);
+      border-color: var(--navy);
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+      color: white;
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    .primary:hover {
+      background: linear-gradient(135deg, var(--orange-dark), var(--brown));
+      border-color: transparent;
+    }
+
+    button:focus-visible, input:focus-visible,
+    select:focus-visible, textarea:focus-visible {
+      outline: 2px solid var(--orange);
+      outline-offset: 2px;
     }
 
     header {
-      background: #202e48;
+      position: relative;
+      overflow: hidden;
       color: white;
-      padding: 28px 4vw;
+      padding: 34px 4vw 30px;
+      background:
+        radial-gradient(circle at 92% 120%, #f9843ecc 0, #f9843e00 45%),
+        linear-gradient(115deg, #1e3b4a 0%, #243f4c 40%, #4a3a2d 75%, #6b523b 100%);
     }
 
-    header h1 { margin: 0; font-size: 26px; }
-    header p { color: #c5d0e3; margin-bottom: 0; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .chevrons { flex: none; width: 54px; height: 30px; }
+
+    header h1 {
+      margin: 0;
+      font: 400 30px/1.15 var(--title);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    header p {
+      color: #f3dcc6;
+      margin: 10px 0 0 70px;
+      font-size: 13px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
     main { padding: 24px 4vw; }
 
     nav, .toolbar {
@@ -68,38 +128,56 @@
 
     .fronts button { white-space: nowrap; }
 
+    .fronts button.active {
+      background: var(--brown);
+      border-color: var(--brown);
+    }
+
     .notice {
-      background: #fff1cb;
-      border-radius: 8px;
-      padding: 12px;
+      background: #fff6ec;
+      border-left: 4px solid var(--orange);
+      border-radius: 10px;
+      padding: 12px 14px;
       font-size: 13px;
+      color: var(--brown);
     }
 
     input, select, textarea {
-      padding: 10px;
-      border: 1px solid #cdd5e2;
-      border-radius: 7px;
-      background: white;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
       color: var(--text);
       max-width: 100%;
     }
+
+    select { border-radius: 999px; }
 
     label {
       display: flex;
       flex-direction: column;
       gap: 6px;
       font-size: 13px;
+      font-weight: 500;
+      color: var(--brown);
     }
 
     .panel, .card {
-      background: white;
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 16px;
       padding: 18px;
       margin: 12px 0;
+      box-shadow: 0 1px 2px #6b523b14;
     }
 
-    h3 { font-size: 16px; }
+    h2 {
+      font: 400 24px var(--title);
+      letter-spacing: .04em;
+      color: var(--navy);
+    }
+
+    h3 { font-size: 15px; font-weight: 600; }
     small, .muted { color: var(--muted); }
     .scroll { overflow-x: auto; }
     .empty { padding: 24px; color: var(--muted); }
@@ -113,27 +191,37 @@
     }
 
     .column {
-      background: #e8edf5;
+      background: var(--column);
       padding: 12px;
-      border-radius: 12px;
+      border-radius: 16px;
       min-height: 330px;
     }
 
+    .column > h3 {
+      margin: 4px 4px 12px;
+      font: 400 14px var(--title);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--brown);
+    }
+
     .card h3 { line-height: 1.4; }
-    .card button { margin-top: 7px; }
+    .card button { margin-top: 7px; font-size: 13px; padding: 8px 14px; }
+    .card:hover { border-color: var(--gold); }
 
     .badge {
       display: inline-block;
       padding: 4px 10px;
       border-radius: 20px;
       font-size: 12px;
-      background: #e9edf5;
+      font-weight: 600;
+      background: #f1e7dc;
     }
 
-    .Anny { background: #ecdefc; color: #70408f; }
-    .Carlos { background: #dcecff; color: #2c588d; }
-    .Jordana { background: #ffe6d2; color: #915124; }
-    .late { color: #b83f32; }
+    .Anny { background: #fde3d0; color: #a24b14; }
+    .Carlos { background: #dce8ed; color: #1e3b4a; }
+    .Jordana { background: #efe2d3; color: #6b523b; }
+    .late { color: #c0462b; font-weight: 600; }
 
     .calendar {
       display: grid;
@@ -142,15 +230,23 @@
       min-width: 800px;
     }
 
+    .calendar > strong {
+      font: 400 13px var(--title);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--brown);
+      padding: 4px;
+    }
+
     .day {
       padding: 8px;
       min-height: 140px;
-      background: white;
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 12px;
     }
 
-    .day > button { padding: 4px 8px; }
+    .day > button { padding: 4px 10px; font-size: 13px; }
 
     .event {
       display: block;
@@ -159,7 +255,9 @@
       font-size: 12px;
       padding: 8px;
       margin-top: 7px;
-      border-left: 3px solid #5376b7;
+      border-radius: 10px;
+      border-left: 3px solid var(--orange);
+      background: #fffaf5;
     }
 
     .stats {
@@ -168,9 +266,12 @@
       gap: 14px;
     }
 
+    .stat { border-top: 3px solid var(--orange); }
+
     .stat strong {
       display: block;
-      font-size: 30px;
+      font: 400 32px var(--title);
+      color: var(--navy);
       margin: 10px 0;
     }
 
@@ -182,16 +283,24 @@
 
     th, td {
       padding: 13px;
-      border-bottom: 1px solid #edf0f6;
+      border-bottom: 1px solid #f0e6da;
       white-space: nowrap;
       font-size: 13px;
     }
 
-    a { color: var(--primary); }
+    th {
+      font-weight: 600;
+      color: var(--brown);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-size: 11px;
+    }
+
+    a { color: var(--orange-dark); font-weight: 500; }
 
     .bar {
       height: 10px;
-      background: #5376b7;
+      background: linear-gradient(90deg, var(--orange), var(--brown));
       border-radius: 8px;
       margin: 8px 0;
     }
@@ -201,12 +310,15 @@
       max-width: 95vw;
       max-height: 90vh;
       border: none;
-      border-radius: 15px;
+      border-top: 4px solid var(--orange);
+      border-radius: 18px;
       padding: 25px;
-      box-shadow: 0 20px 100px #0003;
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 20px 100px #1e3b4a55;
     }
 
-    dialog::backdrop { background: #17253c88; }
+    dialog::backdrop { background: #1e3b4acc; }
 
     form {
       display: grid;
@@ -224,9 +336,14 @@
     }
 
     details { margin: 20px 0; }
+    summary { cursor: pointer; color: var(--brown); font-weight: 600; }
 
     @media (max-width: 600px) {
       main { padding: 15px; }
+      header { padding: 24px 16px; }
+      header h1 { font-size: 22px; }
+      header p { margin-left: 0; }
+      .chevrons { width: 40px; }
       form { grid-template-columns: 1fr; }
       form > * { grid-column: 1 / -1; }
     }
@@ -235,7 +352,17 @@
 
 <body>
 <header>
-  <h1>Centro Liderar - MKT</h1>
+  <div class="brand">
+    <svg class="chevrons" viewBox="0 0 54 30" aria-hidden="true">
+      <defs><linearGradient id="chev" x1="0" x2="1">
+        <stop offset="0" stop-color="#f9843e"/><stop offset="1" stop-color="#f3c79f"/>
+      </linearGradient></defs>
+      <path d="M2 3l12 12L2 27M18 3l12 12-12 12M34 3l12 12-12 12"
+        fill="none" stroke="url(#chev)" stroke-width="4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1>Centro Liderar - MKT</h1>
+  </div>
   <p>Planejamento, atividades e resultados.</p>
 </header>
 
