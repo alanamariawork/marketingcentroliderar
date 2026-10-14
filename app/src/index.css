@@ -1,0 +1,109 @@
+@import 'tailwindcss';
+
+/*
+ * TEMA PROVISÓRIO — base neutra.
+ * A identidade visual oficial do Grupo Mendes (logotipo, cores e fontes) não
+ * está nos arquivos do projeto. Todas as cores, fontes, raios e sombras da
+ * interface vêm destas variáveis: para aplicar a identidade oficial, substitua
+ * apenas os valores abaixo.
+ */
+@theme {
+  /* Tipografia */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-display: var(--font-sans);
+
+  /* Marca (provisória, neutra) */
+  --color-brand-50: #f1f5f9;
+  --color-brand-100: #e2e8f0;
+  --color-brand-500: #475569;
+  --color-brand-600: #334155;
+  --color-brand-700: #1e293b;
+  --color-brand-contrast: #ffffff;
+
+  /* Superfícies e texto */
+  --color-canvas: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f3f6;
+  --color-line: #e2e5ea;
+  --color-line-strong: #cbd1d9;
+  --color-ink: #111827;
+  --color-ink-soft: #374151;
+  --color-ink-muted: #5b6474;
+  --color-focus: #2563eb;
+
+  /* Barra lateral */
+  --color-sidebar: #1f2937;
+  --color-sidebar-ink: #e5e7eb;
+  --color-sidebar-muted: #9ca3af;
+  --color-sidebar-active: #374151;
+
+  /* Feedback */
+  --color-success: #15803d;
+  --color-success-soft: #ecfdf3;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fef2f2;
+  --color-warning: #a16207;
+  --color-warning-soft: #fefce8;
+
+  /* Responsáveis: mesma cor em todas as telas (sempre acompanhada de nome e iniciais) */
+  --color-pessoa-anny: #6d28d9;
+  --color-pessoa-anny-soft: #f3efff;
+  --color-pessoa-carlos: #0f766e;
+  --color-pessoa-carlos-soft: #e8f8f5;
+  --color-pessoa-jordana: #c2410c;
+  --color-pessoa-jordana-soft: #fff1e8;
+  --color-pessoa-nenhum: #6b7280;
+  --color-pessoa-nenhum-soft: #f3f4f6;
+
+  /* Gráficos (série única) */
+  --color-chart: #2a78d6;
+  --color-chart-hover: #1c5cab;
+
+  /* Raios e sombras discretas */
+  --radius-card: 0.625rem;
+  --radius-control: 0.5rem;
+  --shadow-card: 0 1px 2px rgb(17 24 39 / 0.05);
+  --shadow-overlay: 0 12px 32px rgb(17 24 39 / 0.18);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Foco visível e consistente para navegação por teclado */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@utility field-control {
+  @apply w-full rounded-[var(--radius-control)] border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-muted/70 disabled:bg-surface-muted aria-[invalid=true]:border-danger;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+}
+@utility btn-primary {
+  @apply btn bg-brand-700 text-brand-contrast hover:bg-brand-600;
+}
+@utility btn-secondary {
+  @apply btn border border-line-strong bg-surface text-ink-soft hover:bg-surface-muted;
+}
+@utility btn-ghost {
+  @apply btn text-ink-soft hover:bg-surface-muted;
+}
+@utility btn-danger {
+  @apply btn bg-danger text-white hover:bg-red-800;
+}
+@utility card {
+  @apply rounded-[var(--radius-card)] border border-line bg-surface shadow-[var(--shadow-card)];
+}
