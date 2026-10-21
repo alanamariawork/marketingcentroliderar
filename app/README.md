@@ -1,7 +1,7 @@
-# Grupo Mendes · Gestão de Marketing
+# Centro Liderar — Gestão de Marketing
 
-Sistema de gestão de marketing para **Smart Games**, **Up Machines** e **Centro Liderar**, com
-Cronograma, Atividades, Insights, Drive e Dashboard por empresa. Implementa o modelo aprovado em
+Sistema de gestão de marketing exclusivo do **Centro Liderar**, com Cronograma, Atividades,
+Insights, Drive e Dashboard e as contas (perfis e canais) administradas pelo Centro Liderar. Implementa o modelo aprovado em
 `../referencia/marketing-grupo-mendes.html` (preservado sem alterações).
 
 Somente frontend: sem backend, autenticação ou integrações externas. O perfil (Carlos/Kélvia) é
@@ -11,7 +11,7 @@ simulado e não representa autenticação real.
 npm install
 npm run dev        # http://localhost:5173
 npm test
-npm run build      # gera dist/ (caminhos relativos, rotas por hash: #/empresa/pagina)
+npm run build      # gera dist/ (caminhos relativos, rotas por hash: #/pagina)
 ```
 
 Detalhes de arquitetura, persistência, dados importados, diferenças em relação à referência,

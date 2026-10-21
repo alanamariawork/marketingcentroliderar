@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
-import { EMPRESAS, PAGINAS } from '../data/constants'
+import { EMPRESAS, EMPRESA_DO_SISTEMA, PAGINAS } from '../data/constants'
 import type { EmpresaId, PaginaId } from '../data/types'
 
+/** O sistema é exclusivo do Centro Liderar: a empresa da rota é sempre ela. */
 export interface Rota {
   empresaId: EmpresaId
   pagina: PaginaId
 }
 
-const PADRAO: Rota = { empresaId: 'centro-liderar', pagina: 'cronograma' }
+const PADRAO: Rota = { empresaId: EMPRESA_DO_SISTEMA, pagina: 'cronograma' }
 
 export function nomeDaEmpresa(id: EmpresaId): string {
   return EMPRESAS.find((e) => e.id === id)?.nome ?? ''
@@ -18,15 +19,19 @@ export function nomeDaPagina(id: PaginaId): string {
 }
 
 export function hrefDaRota(r: Rota): string {
-  return `#/${r.empresaId}/${r.pagina}`
+  return `#/${r.pagina}`
 }
 
-/** Lê "#/empresa/pagina"; qualquer endereço desconhecido cai na rota padrão. */
+/**
+ * Lê "#/pagina". Endereços antigos "#/centro-liderar/pagina" continuam
+ * funcionando; os de outras empresas (fora do escopo desta versão) e
+ * qualquer endereço desconhecido caem na rota padrão.
+ */
 export function lerRota(hash: string): Rota | null {
-  const [, empresa, pagina] = hash.replace(/^#/, '').split('/')
-  const e = EMPRESAS.find((x) => x.id === empresa)
+  const partes = hash.replace(/^#\/?/, '').split('/')
+  const pagina = partes.length === 2 && partes[0] === EMPRESA_DO_SISTEMA ? partes[1] : partes.length === 1 ? partes[0] : ''
   const p = PAGINAS.find((x) => x.id === pagina)
-  return e && p ? { empresaId: e.id, pagina: p.id } : null
+  return p ? { empresaId: EMPRESA_DO_SISTEMA, pagina: p.id } : null
 }
 
 /** Roteamento por hash: funciona em qualquer hospedagem estática, sem servidor. */

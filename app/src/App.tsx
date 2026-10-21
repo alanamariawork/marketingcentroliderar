@@ -7,6 +7,7 @@ import { ProvedorInsights } from './state/Insights'
 import { ProvedorModais, useModais } from './state/Modais'
 import { nomeDaEmpresa, nomeDaPagina, useRota, type Rota } from './lib/rotas'
 import type { Perfil } from './data/types'
+import { NOME_DO_SISTEMA } from './data/constants'
 import { Cronograma } from './pages/Cronograma'
 import { Atividades } from './pages/Atividades'
 import { Insights } from './pages/Insights'
@@ -32,10 +33,10 @@ function Estrutura() {
   const { abrir } = useModais()
   const [menuAberto, setMenuAberto] = useState(false)
   const fecharMenu = useCallback(() => setMenuAberto(false), [])
-  const adicionarConta = useCallback((empresaId: Rota['empresaId']) => abrir({ tipo: 'conta', empresaId }), [abrir])
+  const adicionarConta = useCallback(() => abrir({ tipo: 'conta', empresaId: rota.empresaId }), [abrir, rota.empresaId])
 
   useEffect(() => {
-    document.title = `${nomeDaPagina(rota.pagina)} · ${nomeDaEmpresa(rota.empresaId)} · Grupo Mendes`
+    document.title = `${nomeDaPagina(rota.pagina)} · ${NOME_DO_SISTEMA}`
   }, [rota])
 
   return (

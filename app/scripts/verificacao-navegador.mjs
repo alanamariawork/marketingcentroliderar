@@ -20,16 +20,22 @@ const errors = []
 page.on('pageerror', (e) => errors.push(e.message))
 page.on('console', (m) => m.type() === 'error' && !/ERR_FAILED|net::/.test(m.text()) && errors.push(m.text()))
 
-const go = async (emp, pag) => { await page.goto(`${BASE}#/${emp}/${pag}`); await page.waitForTimeout(400) }
+const go = async (_emp, pag) => { await page.goto(`${BASE}#/${pag}`); await page.waitForTimeout(400) }
 
 // 1. Navegação
-for (const emp of ['smart-games', 'up-machines', 'centro-liderar']) {
-  for (const pag of ['cronograma', 'atividades', 'insights', 'drive', 'dashboard']) {
-    await go(emp, pag)
-    const h1 = await page.locator('h1').innerText()
-    ok(`navegação ${emp}/${pag}`, h1.toLowerCase() === pag, h1)
-  }
+for (const pag of ['cronograma', 'atividades', 'insights', 'drive', 'dashboard']) {
+  await go('', pag)
+  const h1 = await page.locator('h1').innerText()
+  ok(`navegação ${pag}`, h1.toLowerCase() === pag, h1)
 }
+const menu = await page.locator('aside nav').innerText()
+ok('menu com as 5 páginas na ordem', menu.replace(/\s+/g, ' ').trim() === 'Cronograma Atividades Insights Drive Dashboard Adicionar conta', menu.replace(/\s+/g, ' '))
+ok('sem Smart Games, Up Machines ou seletor de empresas', !/Smart Games|Up Machines|Empresas/.test(await page.locator('body').innerText()))
+ok('nome do sistema', (await page.locator('aside').innerText()).includes('CENTRO LIDERAR') && (await page.title()).includes('Centro Liderar — Gestão de Marketing'), await page.title())
+await page.goto(`${BASE}#/smart-games/atividades`); await page.waitForTimeout(400)
+ok('rota antiga de outra empresa cai no Cronograma', (await page.locator('h1').innerText()) === 'Cronograma')
+await page.goto(`${BASE}#/centro-liderar/insights`); await page.waitForTimeout(400)
+ok('rota antiga do Centro Liderar continua válida', (await page.locator('h1').innerText()) === 'Insights')
 ok('sem faixa "Produção → Decisão final"', !(await page.content()).includes('Decisão final →'))
 ok('sem "Claude IA"', !(await page.content()).includes('Claude IA'))
 
@@ -39,10 +45,8 @@ ok('página atual com aria-current', (await page.locator('aside a[aria-current="
 
 // 3. Atividades demonstrativas e aprovação
 ok('3 atividades demo no Centro Liderar', (await page.getByText('3 entregas').count()) === 1)
-await go('smart-games', 'atividades')
-ok('Smart Games sem atividades (isolamento)', (await page.getByText('Nenhuma atividade cadastrada').count()) === 1)
 
-// Criar atividade na Smart Games com material e vídeo
+// Criar atividade com material e vídeo
 await page.getByRole('button', { name: 'Adicionar atividade' }).first().click()
 const dlg = page.getByRole('dialog')
 await dlg.getByLabel('Título').fill('Teste lançamento')
@@ -68,12 +72,10 @@ await dlg.getByLabel('Anexo de vídeo local').setInputFiles({ name: 'clipe.mp4',
 await page.getByRole('button', { name: 'Salvar' }).click()
 await page.waitForTimeout(300)
 ok('atividade criada', (await page.locator('h3', { hasText: 'Teste lançamento' }).count()) === 1)
-await page.screenshot({ path: OUT + 'atividades-smart.png', fullPage: true })
-await go('up-machines', 'atividades')
-ok('atividade não aparece em Up Machines', (await page.getByText('Teste lançamento').count()) === 0)
+await page.screenshot({ path: OUT + 'atividades.png', fullPage: true })
 
 // Cronograma: vínculo com a data
-await go('smart-games', 'cronograma')
+await go('', 'cronograma')
 await page.getByLabel('Ir para a data').fill('2026-10-23')
 await page.waitForTimeout(200)
 ok('atividade no cronograma mensal', (await page.getByRole('button', { name: /10:30.*Teste lançamento/ }).count()) === 1)
@@ -102,10 +104,10 @@ ok('Carlos não vê "Aprovar versão"', (await page.getByRole('button', { name: 
 await page.getByRole('button', { name: 'Enviar para aprovação' }).click()
 await page.keyboard.press('Escape')
 await page.getByLabel('Simular perfil').selectOption('Kélvia')
-await go('smart-games', 'atividades')
+await go('', 'atividades')
 await page.getByRole('button', { name: 'Aguardando Kélvia' }).click()
-ok('filtro Aguardando Kélvia', (await page.locator('h3', { hasText: 'Teste lançamento' }).count()) === 1 && (await page.locator('article').count()) === 1)
-await page.getByRole('button', { name: /Revisar entrega/ }).click()
+ok('filtro Aguardando Kélvia', (await page.locator('h3', { hasText: 'Teste lançamento' }).count()) === 1 && (await page.locator('article').count()) === 2)
+await page.getByRole('button', { name: /Revisar entrega.*Teste/ }).click()
 await page.getByRole('button', { name: 'Solicitar ajustes' }).click()
 ok('ajuste exige orientação', (await page.getByText('Descreva os ajustes antes de enviar.').count()) === 1)
 await page.getByLabel('Orientação para ajustes').fill('Trocar a trilha')
@@ -119,7 +121,7 @@ await page.getByRole('button', { name: /Abrir entrega.*Teste/ }).click()
 await page.getByRole('button', { name: 'Enviar para aprovação' }).click()
 await page.keyboard.press('Escape')
 await page.getByLabel('Simular perfil').selectOption('Kélvia')
-await page.getByRole('button', { name: /Revisar entrega/ }).click()
+await page.getByRole('button', { name: /Revisar entrega.*Teste/ }).click()
 await page.getByRole('button', { name: 'Aprovar versão' }).click()
 ok('Kélvia aprova versão 2', (await page.getByRole('dialog').getByText('Kélvia aprovou a versão 2.').count()) === 1)
 await page.keyboard.press('Escape')
@@ -174,7 +176,7 @@ const ls = await page.evaluate(() => JSON.parse(localStorage.getItem('mendes-ins
 ok('localStorage mendes-insights-v1 com 1.204 registros', ls === 1204, String(ls))
 ok('catálogo do Drive fora do localStorage', await page.evaluate(() => JSON.stringify(localStorage).length < 3_000_000))
 // atividades de sessão somem ao recarregar
-await go('smart-games', 'atividades')
+await go('', 'atividades')
 ok('atividades são da sessão (somem ao recarregar)', (await page.getByText('Teste lançamento').count()) === 0)
 // Falha de gravação
 await page.evaluate(() => localStorage.setItem('gm-marketing:simular-erro', '1'))
@@ -216,32 +218,35 @@ ok('foco volta ao botão após fechar prévia', await prev.evaluate((el) => el =
 const ultimo = await page.locator('main a, main button').last().innerText()
 ok('botão geral do Drive somente no final', /Abrir LIDERAR no Google Drive/.test(ultimo) && (await page.getByText('Abrir LIDERAR no Google Drive').count()) === 1, ultimo)
 await page.screenshot({ path: OUT + 'drive.png' })
-await go('up-machines', 'drive')
-ok('Drive vazio em outras empresas', (await page.getByText('ainda não foi configurada').count()) === 1)
 
 // Conta
-await page.getByRole('button', { name: 'Adicionar conta em Up Machines' }).click()
-await page.getByRole('dialog').getByLabel('Nome da conta').fill('Up Machines — Instagram')
+await page.locator('aside').getByRole('button', { name: 'Adicionar conta' }).click()
+ok('nova conta vinculada ao Centro Liderar', (await page.getByRole('dialog').getByLabel('Empresa').count()) === 0 && (await page.getByRole('dialog').innerText()).includes('Centro Liderar · perfil ou canal'))
+await page.getByRole('dialog').getByLabel('Nome da conta').fill('MQA — Instagram')
 await page.getByRole('dialog').getByRole('button', { name: 'Salvar' }).click()
-await go('up-machines', 'insights')
-ok('conta adicionada aparece em Insights', (await page.getByRole('button', { name: /Up Machines — Instagram\s*0 registros/ }).count()) === 1)
+ok('não duplica conta existente', (await page.getByText('Já existe uma conta com este nome no Centro Liderar.').count()) === 1)
+await page.getByRole('dialog').getByLabel('Nome da conta').fill('Centro Liderar — LinkedIn')
+await page.getByRole('dialog').getByRole('button', { name: 'Salvar' }).click()
+await go('', 'insights')
+ok('conta adicionada aparece em Insights', (await page.getByRole('button', { name: /Centro Liderar — LinkedIn\s*0 registros/ }).count()) === 1)
+ok('7 contas do Centro Liderar preservadas', (await page.locator('[aria-label="Contas"] button').count()) === 8)
 
 // Celular
 const m = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'pt-BR', timezoneId: 'America/Fortaleza' })
 await m.route(/drive\.google\.com/, (r) => r.abort())
 const mp = await m.newPage()
 for (const pag of ['cronograma', 'atividades', 'insights', 'dashboard', 'drive']) {
-  await mp.goto(`${BASE}#/centro-liderar/${pag}`); await mp.waitForTimeout(pag === 'drive' ? 4000 : 800)
+  await mp.goto(`${BASE}#/${pag}`); await mp.waitForTimeout(pag === 'drive' ? 4000 : 800)
   const sw = await mp.evaluate(() => document.documentElement.scrollWidth)
   ok(`celular sem rolagem horizontal na página: ${pag}`, sw <= 390, String(sw))
   await mp.screenshot({ path: OUT + `celular-${pag}.png`, fullPage: false })
 }
-await mp.goto(`${BASE}#/centro-liderar/cronograma`); await mp.waitForTimeout(500)
+await mp.goto(`${BASE}#/cronograma`); await mp.waitForTimeout(500)
 await mp.getByRole('button', { name: 'Abrir menu' }).click()
 ok('menu móvel abre', (await mp.getByRole('dialog', { name: 'Menu de navegação' }).count()) === 1)
 await mp.screenshot({ path: OUT + 'celular-menu.png' })
 await mp.keyboard.press('Escape')
-await mp.goto(`${BASE}#/centro-liderar/cronograma`); await mp.waitForTimeout(500)
+await mp.goto(`${BASE}#/cronograma`); await mp.waitForTimeout(500)
 await mp.getByRole('button', { name: 'Anual' }).click()
 await mp.screenshot({ path: OUT + 'celular-anual.png', fullPage: false })
 

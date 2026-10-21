@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
-import { nomeEmpresa, PLATAFORMAS_CONTA } from '../data/constants'
+import { CONTAS_CENTRO_LIDERAR, nomeEmpresa, PLATAFORMAS_CONTA } from '../data/constants'
 import type { EmpresaId } from '../data/types'
 import { Dialog } from '../components/Dialog'
 import { AvisoObrigatorios, BotoesFormulario, Campo, focarPrimeiroErro, useEnvio } from '../components/Form'
@@ -22,8 +22,12 @@ export function FormConta({ empresaId, onFechar }: { empresaId: EmpresaId; onFec
     e.preventDefault()
     const novos: Record<string, string> = {}
     if (!nome.trim()) novos.nome = 'Informe o nome da conta.'
-    else if (contas.some((c) => c.empresaId === empresaId && c.nome.trim().toLowerCase() === nome.trim().toLowerCase())) {
-      novos.nome = 'Já existe uma conta com este nome nesta empresa.'
+    else if (
+      [...contas.filter((c) => c.empresaId === empresaId).map((c) => c.nome), ...CONTAS_CENTRO_LIDERAR.flatMap((c) => [c.id, c.rotulo])].some(
+        (n) => n.trim().toLowerCase() === nome.trim().toLowerCase(),
+      )
+    ) {
+      novos.nome = 'Já existe uma conta com este nome no Centro Liderar.'
     }
     setErros(novos)
     if (Object.keys(novos).length) return focarPrimeiroErro(form.current)
@@ -47,7 +51,7 @@ export function FormConta({ empresaId, onFechar }: { empresaId: EmpresaId; onFec
       <form id="form-conta" ref={form} onSubmit={aoEnviar} noValidate className="space-y-4">
         <AvisoObrigatorios />
         {erro && <AlertaErro mensagem={erro} />}
-        <Campo rotulo="Nome da conta" obrigatorio erro={erros.nome} dica="Ex.: Smart Games — Instagram">
+        <Campo rotulo="Nome da conta" obrigatorio erro={erros.nome} dica="Ex.: Centro Liderar — LinkedIn">
           {(p) => <input {...p} data-autofocus className="field-control" value={nome} onChange={(e) => setNome(e.target.value)} />}
         </Campo>
         <Campo rotulo="Plataforma">

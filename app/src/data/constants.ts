@@ -1,10 +1,19 @@
 import type { ChaveMetrica, EmpresaId, FormatoPostagem, NomeEmpresa, PaginaId, Responsavel } from './types'
 
+/**
+ * Empresas conhecidas pelo modelo de dados. Esta versão é exclusiva do Centro
+ * Liderar: Smart Games e Up Machines saíram da interface e do escopo, mas
+ * continuam aqui para que registros eventualmente salvos delas não sejam
+ * apagados nem reinterpretados.
+ */
 export const EMPRESAS: { id: EmpresaId; nome: NomeEmpresa }[] = [
   { id: 'smart-games', nome: 'Smart Games' },
   { id: 'up-machines', nome: 'Up Machines' },
   { id: 'centro-liderar', nome: 'Centro Liderar' },
 ]
+
+export const EMPRESA_DO_SISTEMA: EmpresaId = 'centro-liderar'
+export const NOME_DO_SISTEMA = 'Centro Liderar — Gestão de Marketing'
 
 export function nomeEmpresa(id: EmpresaId): NomeEmpresa {
   return EMPRESAS.find((e) => e.id === id)!.nome

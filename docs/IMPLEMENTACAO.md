@@ -1,15 +1,30 @@
-# Gestão de Marketing — Grupo Mendes: implementação
+# Centro Liderar — Gestão de Marketing: implementação
 
 Implementação em React + TypeScript + Vite (pasta `app/`) do modelo aprovado em
 `referencia/marketing-grupo-mendes.html`. O HTML original foi copiado sem alterações
 (SHA-256 `7cd7352c40046864c05e1250f4a9f9291316fb2a418ff0952b167605c75a7961`).
+
+## Escopo desta versão
+
+O sistema é **exclusivo do Centro Liderar** (“Centro Liderar — Gestão de Marketing”). Não há
+seletor de empresas: a barra lateral mostra Cronograma, Atividades, Insights, Drive e Dashboard, e
+o botão “Adicionar conta”, que vincula a nova conta automaticamente ao Centro Liderar.
+
+As contas são perfis e canais administrados pelo Centro Liderar, não empresas: Centro Liderar —
+Instagram, MQA — Instagram, Diamante Business — Instagram, Jaciara Mendes — Instagram,
+Jaciara — YouTube, Jaciara — TikTok e Jaciara — Tráfego.
+
+Smart Games e Up Machines saíram da interface e do escopo, mas **nenhum dado foi excluído**: o
+modelo de dados continua aceitando essas empresas, e registros delas que já estejam salvos no
+navegador (chave `mendes-insights-v1`) permanecem gravados, apenas sem exibição. Endereços antigos
+`#/centro-liderar/<página>` continuam funcionando; os de outras empresas abrem o Cronograma.
 
 ## Como executar
 
 ```bash
 cd app
 npm install
-npm run dev        # http://localhost:5173  (abre em Centro Liderar / Cronograma)
+npm run dev        # http://localhost:5173  (abre no Cronograma; rotas #/cronograma, #/insights…)
 npm test           # testes de regras, dados importados, armazenamento e datas
 npm run build      # verificação de tipos + build estático em app/dist
 npm run preview    # serve o build em http://localhost:4173
@@ -27,7 +42,8 @@ provisória**, sem reaproveitar as cores do HTML de demonstração nem a identid
 Age que existe na branch principal.
 
 - Tema centralizado no bloco `@theme` de `app/src/index.css` (cores, fontes, raios, sombras).
-- Nome/logotipo do menu em `app/src/components/Marca.tsx`.
+- Nome do sistema em `NOME_DO_SISTEMA` (`app/src/data/constants.ts`) e logotipo em
+  `app/src/components/Marca.tsx`.
 - O catálogo do Drive lista pastas que podem conter a marca (por exemplo
   `LIDERAR / CLIENTES MÍDIAS / LIDERAR / LOGO` e `LOGO EM COREL`); os arquivos não foram baixados
   nem usados. Quando os arquivos oficiais forem enviados, basta trocar os valores do tema e o

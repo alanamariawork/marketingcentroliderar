@@ -104,3 +104,16 @@ describe('pesquisa do Drive', () => {
     expect(indice.capas.get('LIDERAR / FOTOS')?.name).toBe('Jacy no palco.jpg')
   })
 })
+
+describe('rotas (sistema exclusivo do Centro Liderar)', async () => {
+  const { lerRota, hrefDaRota } = await import('../lib/rotas')
+  it('lê "#/pagina" e o formato antigo do Centro Liderar', () => {
+    expect(lerRota('#/insights')).toEqual({ empresaId: 'centro-liderar', pagina: 'insights' })
+    expect(lerRota('#/centro-liderar/drive')).toEqual({ empresaId: 'centro-liderar', pagina: 'drive' })
+    expect(hrefDaRota({ empresaId: 'centro-liderar', pagina: 'dashboard' })).toBe('#/dashboard')
+  })
+  it('não abre rotas de outras empresas', () => {
+    expect(lerRota('#/smart-games/atividades')).toBeNull()
+    expect(lerRota('#/up-machines/insights')).toBeNull()
+  })
+})
