@@ -1,90 +1,125 @@
-// Modelos de dados da aplicação. Todos os registros pertencem a uma empresa.
+// Modelos de dados. Os nomes dos campos de Insights e do catálogo do Drive são
+// os mesmos do HTML de referência (marketing-grupo-mendes.html) para que os
+// registros importados e os salvos no navegador continuem compatíveis.
 
 export type EmpresaId = 'smart-games' | 'up-machines' | 'centro-liderar'
+export type NomeEmpresa = 'Smart Games' | 'Up Machines' | 'Centro Liderar'
 export type PaginaId = 'cronograma' | 'atividades' | 'insights' | 'drive' | 'dashboard'
 
-/** Identificador do responsável; `null` significa "Sem responsável". */
-export type ResponsavelId = 'anny' | 'carlos' | 'jordana' | null
+/** Perfil simulado. Não é autenticação: serve só para demonstrar o fluxo de aprovação. */
+export type Perfil = 'Carlos' | 'Kélvia'
 
-export type Plataforma =
-  | 'Instagram'
-  | 'TikTok'
-  | 'YouTube'
-  | 'LinkedIn'
-  | 'Facebook'
-  | 'Site/Blog'
-  | 'E-mail'
-  | 'WhatsApp'
-  | 'Outro'
+/** Anny continua aceita em registros antigos, mas não aparece nas novas atribuições. */
+export type Responsavel = 'Carlos' | 'Jordana' | 'Anny' | 'Sem responsável'
 
-export type Formato = 'Post' | 'Carrossel' | 'Reels' | 'Stories' | 'Vídeo' | 'Artigo' | 'E-mail'
-export type StatusConteudo = 'Ideia' | 'Em produção' | 'Em aprovação' | 'Agendado' | 'Publicado'
-export type StatusAtividade = 'A fazer' | 'Em andamento' | 'Em revisão' | 'Concluído'
-export type Prioridade = 'Baixa' | 'Média' | 'Alta'
-export type TipoLink =
-  | 'Pasta'
-  | 'Documento'
-  | 'Planilha'
-  | 'Apresentação'
-  | 'Imagem'
-  | 'Vídeo'
-  | 'Outro'
+export type FormatoPostagem =
+  | 'Reels'
+  | 'Carrossel'
+  | 'Estático'
+  | 'Live'
+  | 'Story'
+  | 'Endomarketing'
+  | 'Marketing Offline'
 
-interface Registro {
-  id: string
-  empresaId: EmpresaId
-  criadoEm: string
-  atualizadoEm: string
+export type StatusAtividade = 'Em produção' | 'Ajustes solicitados' | 'Aguardando aprovação' | 'Aprovado'
+
+export interface EventoHistorico {
+  /** Carimbo ISO; `null` nos registros de demonstração herdados da referência. */
+  quando: string | null
+  autor: Perfil | 'Sistema'
+  texto: string
 }
 
-export interface Conta extends Registro {
+/**
+ * Material para aprovação. O vídeo local é um endereço `blob:` que existe só
+ * nesta aba do navegador: não é enviado à nuvem nem compartilhado.
+ */
+export interface Material {
+  canva: string
+  drive: string
+  arte: string
+  video: string | null
+  videoNome: string
+  videoTamanho: number
+}
+
+export interface Atividade {
+  id: string
+  empresaId: EmpresaId
+  titulo: string
+  status: StatusAtividade
+  formato: FormatoPostagem
+  responsavel: Responsavel
+  /** AAAA-MM-DD no fuso America/Fortaleza; vazio = sem data definida. */
+  dataPostagem: string
+  /** HH:mm no fuso America/Fortaleza; vazio = horário a definir. */
+  horaPostagem: string
+  versao: number
+  material: Material | null
+  historico: EventoHistorico[]
+  /** Atividades de exemplo, diferentes dos dados reais importados de Insights. */
+  demonstrativa: boolean
+}
+
+/** Uma conta é um perfil ou canal de comunicação, não um usuário. */
+export interface Conta {
+  id: string
+  empresaId: EmpresaId
   nome: string
-  plataforma: Plataforma
+  plataforma: string
   perfil: string
 }
 
-/** `null` = métrica não preenchida (diferente de zero). */
-export interface Metricas {
-  alcance: number | null
-  visualizacoes: number | null
-  curtidas: number | null
-  comentarios: number | null
-  compartilhamentos: number | null
-  salvamentos: number | null
+export type RegraScore = '' | 'liderar' | 'mqa'
+
+export type ChaveMetrica =
+  | 'nonfollowers'
+  | 'followers'
+  | 'clicks'
+  | 'reach'
+  | 'plays'
+  | 'reposts'
+  | 'repeats'
+  | 'watch'
+  | 'likes'
+  | 'comments'
+  | 'shares'
+  | 'saves'
+  | 'follows'
+
+/** `null`/ausente = não informado. Zero é um resultado válido. */
+export type Metricas = { [K in ChaveMetrica]?: number | null }
+
+export interface RegistroInsight extends Metricas {
+  id: string
+  /** Nome da empresa, como na referência ("Centro Liderar"). */
+  company: string
+  /** Identificador da conta, como na referência ("MQA", "Jaciara Mendes — Instagram"…). */
+  account: string
+  date: string
+  rule: RegraScore
+  collected: string
+  updated: string
+  notes: string
+  type: string
+  funnel: string
+  format: string
+  description: string
+  link: string
+  category: string
+  sourceSheet?: string
+  sourceRow?: number
+  /** Score registrado na planilha de origem (histórico, não recalculado). */
+  sourceScore?: number | null
+  sourceFormula?: string
 }
 
-export interface Conteudo extends Registro {
-  titulo: string
-  contaId: string
-  formato: Formato
-  /** Data de calendário AAAA-MM-DD (fuso America/Fortaleza). */
-  data: string
-  /** Horário HH:mm (fuso America/Fortaleza). */
-  horario: string
-  responsavel: ResponsavelId
-  status: StatusConteudo
-  legenda: string
-  linkMaterial: string
-  metricas: Metricas | null
-  metricasRegistradasEm: string | null
-}
+export type TipoItemDrive = 'Pasta' | 'Documento' | 'Foto' | 'Vídeo'
 
-export interface Atividade extends Registro {
-  titulo: string
-  descricao: string
-  responsavel: ResponsavelId
-  /** AAAA-MM-DD ou vazio quando não há prazo. */
-  prazo: string
-  prioridade: Prioridade
-  status: StatusAtividade
-  conteudoId: string | null
-}
-
-export interface LinkDrive extends Registro {
-  nome: string
-  tipo: TipoLink
-  descricao: string
+/** Item do catálogo do Drive, exatamente como no HTML de referência. */
+export interface ItemDrive {
+  name: string
   url: string
+  path: string
+  type: TipoItemDrive
 }
-
-export type NovoRegistro<T> = Omit<T, 'id' | 'empresaId' | 'criadoEm' | 'atualizadoEm'>

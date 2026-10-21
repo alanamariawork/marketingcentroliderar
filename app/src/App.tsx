@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AtSign, Menu, Plus } from 'lucide-react'
+import { Menu, Plus } from 'lucide-react'
 import { Sidebar, SidebarMovel } from './components/Sidebar'
 import { ProvedorFeedback } from './components/Feedback'
-import { Carregando, EstadoErro } from './components/Estados'
-import { ProvedorDadosEmpresa, useDadosEmpresa } from './state/DadosEmpresa'
+import { ProvedorSessao, useSessao } from './state/Sessao'
+import { ProvedorInsights } from './state/Insights'
 import { ProvedorModais, useModais } from './state/Modais'
 import { nomeDaEmpresa, nomeDaPagina, useRota, type Rota } from './lib/rotas'
+import type { Perfil } from './data/types'
 import { Cronograma } from './pages/Cronograma'
 import { Atividades } from './pages/Atividades'
 import { Insights } from './pages/Insights'
@@ -13,16 +14,32 @@ import { Drive } from './pages/Drive'
 import { Dashboard } from './pages/Dashboard'
 
 export default function App() {
+  return (
+    <ProvedorFeedback>
+      <ProvedorSessao>
+        <ProvedorInsights>
+          <ProvedorModais>
+            <Estrutura />
+          </ProvedorModais>
+        </ProvedorInsights>
+      </ProvedorSessao>
+    </ProvedorFeedback>
+  )
+}
+
+function Estrutura() {
   const rota = useRota()
+  const { abrir } = useModais()
   const [menuAberto, setMenuAberto] = useState(false)
   const fecharMenu = useCallback(() => setMenuAberto(false), [])
+  const adicionarConta = useCallback((empresaId: Rota['empresaId']) => abrir({ tipo: 'conta', empresaId }), [abrir])
 
   useEffect(() => {
     document.title = `${nomeDaPagina(rota.pagina)} · ${nomeDaEmpresa(rota.empresaId)} · Grupo Mendes`
   }, [rota])
 
   return (
-    <ProvedorFeedback>
+    <>
       <a
         href="#conteudo-principal"
         onClick={(e) => {
@@ -33,33 +50,31 @@ export default function App() {
       >
         Pular para o conteúdo
       </a>
-      <div className="flex h-full">
-        <aside className="hidden w-64 shrink-0 lg:block">
+      <div className="flex min-h-full">
+        <aside className="hidden w-64 shrink-0 bg-sidebar lg:block">
           <div className="sticky top-0 h-screen">
-            <Sidebar rota={rota} />
+            <Sidebar rota={rota} onAdicionarConta={adicionarConta} />
           </div>
         </aside>
-        <SidebarMovel aberta={menuAberto} onFechar={fecharMenu} rota={rota} />
-
-        {/* key: trocar de empresa recria todo o estado — os dados nunca se misturam */}
-        <ProvedorDadosEmpresa key={rota.empresaId} empresaId={rota.empresaId}>
-          <ProvedorModais>
-            <div className="flex min-w-0 flex-1 flex-col">
-              <Cabecalho rota={rota} onAbrirMenu={() => setMenuAberto(true)} />
-              <main id="conteudo-principal" tabIndex={-1} className="flex-1 px-4 py-5 outline-none sm:px-6 lg:px-8">
-                <Pagina rota={rota} />
-              </main>
-            </div>
-          </ProvedorModais>
-        </ProvedorDadosEmpresa>
+        <SidebarMovel aberta={menuAberto} onFechar={fecharMenu} rota={rota} onAdicionarConta={adicionarConta} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Cabecalho rota={rota} onAbrirMenu={() => setMenuAberto(true)} />
+          <main id="conteudo-principal" tabIndex={-1} className="flex-1 px-4 py-5 outline-none sm:px-6 lg:px-8">
+            <Pagina rota={rota} />
+          </main>
+          <footer className="border-t border-line px-4 py-3 text-xs text-ink-muted sm:px-6 lg:px-8">
+            Atividades demonstrativas e contas adicionadas ficam só nesta sessão · Insights importados das planilhas e
+            salvos neste navegador · Tema neutro provisório · Sem integrações externas
+          </footer>
+        </div>
       </div>
-    </ProvedorFeedback>
+    </>
   )
 }
 
 function Cabecalho({ rota, onAbrirMenu }: { rota: Rota; onAbrirMenu: () => void }) {
   const { abrir } = useModais()
-  const { carregando, erro } = useDadosEmpresa()
+  const { perfil, setPerfil } = useSessao()
   const tituloRef = useRef<HTMLHeadingElement>(null)
   const primeira = useRef(true)
 
@@ -72,14 +87,12 @@ function Cabecalho({ rota, onAbrirMenu }: { rota: Rota; onAbrirMenu: () => void 
     tituloRef.current?.focus()
   }, [rota.empresaId, rota.pagina])
 
-  const acaoPrincipal = {
-    cronograma: { rotulo: 'Adicionar conteúdo', abrir: () => abrir({ tipo: 'conteudo' }) },
-    atividades: { rotulo: 'Adicionar atividade', abrir: () => abrir({ tipo: 'atividade' }) },
-    insights: null,
-    drive: { rotulo: 'Adicionar link', abrir: () => abrir({ tipo: 'link' }) },
-    dashboard: { rotulo: 'Adicionar conteúdo', abrir: () => abrir({ tipo: 'conteudo' }) },
-  }[rota.pagina]
-  const desabilitado = carregando || !!erro
+  const acao =
+    rota.pagina === 'atividades'
+      ? 'Adicionar atividade'
+      : rota.pagina === 'cronograma'
+        ? 'Adicionar conteúdo'
+        : null
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
@@ -88,36 +101,37 @@ function Cabecalho({ rota, onAbrirMenu }: { rota: Rota; onAbrirMenu: () => void 
           <Menu className="size-5" aria-hidden />
         </button>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">{nomeDaEmpresa(rota.empresaId)}</p>
+          <p className="eyebrow">
+            {nomeDaEmpresa(rota.empresaId)} / {nomeDaPagina(rota.pagina)}
+          </p>
           <h1 ref={tituloRef} tabIndex={-1} className="font-display text-xl font-semibold text-ink outline-none">
             {nomeDaPagina(rota.pagina)}
           </h1>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={() => abrir({ tipo: 'contas' })}
-            disabled={desabilitado}
-          >
-            <AtSign className="size-4" aria-hidden />
-            Contas
-          </button>
-          {rota.pagina !== 'drive' && rota.pagina !== 'atividades' && (
+          <label className="flex items-center gap-2 text-sm text-ink-soft">
+            Simular perfil
+            <select
+              className="field-control w-auto py-1.5"
+              value={perfil}
+              aria-describedby="aviso-perfil"
+              onChange={(e) => setPerfil(e.target.value as Perfil)}
+            >
+              <option>Carlos</option>
+              <option>Kélvia</option>
+            </select>
+          </label>
+          <span id="aviso-perfil" className="text-[11px] text-ink-muted">
+            Simulação: não é autenticação real
+          </span>
+          {acao && (
             <button
               type="button"
-              className="btn-secondary hidden sm:inline-flex"
-              onClick={() => abrir({ tipo: 'conta' })}
-              disabled={desabilitado}
+              className="btn-primary"
+              onClick={() => abrir({ tipo: 'nova-atividade', empresaId: rota.empresaId, titulo: acao })}
             >
               <Plus className="size-4" aria-hidden />
-              Adicionar conta
-            </button>
-          )}
-          {acaoPrincipal && (
-            <button type="button" className="btn-primary" onClick={acaoPrincipal.abrir} disabled={desabilitado}>
-              <Plus className="size-4" aria-hidden />
-              {acaoPrincipal.rotulo}
+              {acao}
             </button>
           )}
         </div>
@@ -127,19 +141,24 @@ function Cabecalho({ rota, onAbrirMenu }: { rota: Rota; onAbrirMenu: () => void 
 }
 
 function Pagina({ rota }: { rota: Rota }) {
-  const { carregando, erro, recarregar } = useDadosEmpresa()
-  if (carregando) return <Carregando />
-  if (erro) return <EstadoErro mensagem={erro} onTentar={recarregar} />
+  const { abrir } = useModais()
+  const { empresaId } = rota
   switch (rota.pagina) {
     case 'cronograma':
-      return <Cronograma />
+      return <Cronograma key={empresaId} empresaId={empresaId} />
     case 'atividades':
-      return <Atividades />
+      return (
+        <Atividades
+          key={empresaId}
+          empresaId={empresaId}
+          onNova={() => abrir({ tipo: 'nova-atividade', empresaId, titulo: 'Adicionar atividade' })}
+        />
+      )
     case 'insights':
-      return <Insights />
+      return <Insights key={empresaId} empresaId={empresaId} />
     case 'drive':
-      return <Drive />
+      return <Drive key={empresaId} empresaId={empresaId} />
     case 'dashboard':
-      return <Dashboard />
+      return <Dashboard key={empresaId} empresaId={empresaId} />
   }
 }

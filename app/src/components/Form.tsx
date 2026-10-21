@@ -1,5 +1,10 @@
 import { useId, useRef, useState, type ReactNode } from 'react'
-import { mensagemDeErro } from '../state/DadosEmpresa'
+import { ErroDeArmazenamento } from '../data/armazenamento'
+
+export function mensagemDeErro(e: unknown): string {
+  if (e instanceof ErroDeArmazenamento) return e.message
+  return 'Ocorreu um erro inesperado. Tente novamente.'
+}
 
 export interface PropsControle {
   id: string
@@ -71,7 +76,7 @@ export function useEnvio() {
   const [erro, setErro] = useState<string | null>(null)
   const emAndamento = useRef(false)
 
-  async function enviar(acao: () => Promise<void>) {
+  async function enviar(acao: () => Promise<void> | void) {
     if (emAndamento.current) return
     emAndamento.current = true
     setSalvando(true)

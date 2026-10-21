@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ehDataValida, gradeDoMes, hoje, inicioDaSemana, intervaloDoPeriodo, somarDias, somarMeses, formatarData } from '../lib/dates'
+import { ehDataValida, gradeDoMes, hoje, inicioDaSemana, somarDias, somarMeses, formatarData } from '../lib/dates'
 
 describe('datas (America/Fortaleza)', () => {
   it('calcula "hoje" no fuso de Fortaleza, não no UTC', () => {
@@ -14,23 +14,19 @@ describe('datas (America/Fortaleza)', () => {
     expect(somarMeses('2026-01-31', 1)).toBe('2026-02-01')
   })
 
-  it('monta a grade do mês em semanas de domingo a sábado', () => {
+  it('monta a grade do mês em semanas de segunda a domingo', () => {
     const grade = gradeDoMes('2026-10-14')
-    expect(grade[0]).toBe('2026-09-27')
+    expect(grade[0]).toBe('2026-09-28')
     expect(grade.length % 7).toBe(0)
     expect(grade).toContain('2026-10-31')
-    expect(inicioDaSemana('2026-10-14')).toBe('2026-10-11')
+    expect(inicioDaSemana('2026-10-14')).toBe('2026-10-12')
+    expect(inicioDaSemana('2026-10-18')).toBe('2026-10-12') // domingo pertence à semana anterior
+    expect(inicioDaSemana('2026-10-12')).toBe('2026-10-12')
   })
 
   it('valida e formata datas no padrão brasileiro', () => {
     expect(ehDataValida('2026-02-30')).toBe(false)
     expect(ehDataValida('2026-02-28')).toBe(true)
     expect(formatarData('2026-10-04')).toBe('04/10/2026')
-  })
-
-  it('calcula intervalos de período', () => {
-    expect(intervaloDoPeriodo('7d', '2026-10-14')).toEqual({ inicio: '2026-10-08', fim: '2026-10-14' })
-    expect(intervaloDoPeriodo('mes-anterior', '2026-03-10')).toEqual({ inicio: '2026-02-01', fim: '2026-02-28' })
-    expect(intervaloDoPeriodo('todos')).toBeNull()
   })
 })

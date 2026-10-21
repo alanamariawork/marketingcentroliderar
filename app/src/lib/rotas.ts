@@ -7,7 +7,7 @@ export interface Rota {
   pagina: PaginaId
 }
 
-const PADRAO: Rota = { empresaId: EMPRESAS[0].id, pagina: 'cronograma' }
+const PADRAO: Rota = { empresaId: 'centro-liderar', pagina: 'cronograma' }
 
 export function nomeDaEmpresa(id: EmpresaId): string {
   return EMPRESAS.find((e) => e.id === id)?.nome ?? ''

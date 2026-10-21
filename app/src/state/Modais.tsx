@@ -1,73 +1,47 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react'
-import type { Atividade, Conta, Conteudo, LinkDrive, StatusAtividade } from '../data/types'
-import { FormConteudo } from '../forms/FormConteudo'
-import { DetalheConteudo } from '../forms/DetalheConteudo'
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import type { EmpresaId } from '../data/types'
 import { FormAtividade } from '../forms/FormAtividade'
-import { FormConta, PainelContas } from '../forms/Contas'
-import { FormLink } from '../forms/FormLink'
-import { FormResultados } from '../forms/FormResultados'
+import { DetalheAtividade } from '../forms/DetalheAtividade'
+import { FormConta } from '../forms/FormConta'
+import { FormInsight } from '../forms/FormInsight'
 
 export type Modal =
-  | { tipo: 'conteudo'; registro?: Conteudo; data?: string }
-  | { tipo: 'detalhe-conteudo'; id: string }
-  | { tipo: 'atividade'; registro?: Atividade; status?: StatusAtividade }
-  | { tipo: 'conta'; registro?: Conta; aoSalvar?: (c: Conta) => void }
-  | { tipo: 'contas' }
-  | { tipo: 'link'; registro?: LinkDrive }
-  | { tipo: 'resultados'; id: string }
+  | { tipo: 'nova-atividade'; empresaId: EmpresaId; titulo: string; data?: string }
+  | { tipo: 'atividade'; id: string }
+  | { tipo: 'conta'; empresaId: EmpresaId }
+  | { tipo: 'insight'; empresaId: EmpresaId; id?: string }
 
 interface ModaisApi {
   abrir: (m: Modal) => void
-  /** Fecha o modal do topo e abre outro no lugar. */
-  substituir: (m: Modal) => void
   fechar: () => void
 }
 
 const Contexto = createContext<ModaisApi | null>(null)
 
-/** Pilha de modais: permite, por exemplo, cadastrar uma conta sem perder o conteúdo em edição. */
+/** Um modal por vez; o foco volta ao botão de origem ao fechar (ver Dialog). */
 export function ProvedorModais({ children }: { children: ReactNode }) {
-  const [pilha, setPilha] = useState<{ chave: number; modal: Modal }[]>([])
-  const contador = useRef(0)
-
-  const abrir = useCallback((modal: Modal) => {
-    const chave = contador.current++
-    setPilha((p) => [...p, { chave, modal }])
-  }, [])
-  const fechar = useCallback(() => setPilha((p) => p.slice(0, -1)), [])
-  const substituir = useCallback((modal: Modal) => {
-    const chave = contador.current++
-    setPilha((p) => [...p.slice(0, -1), { chave, modal }])
-  }, [])
-
-  const api = useMemo(() => ({ abrir, fechar, substituir }), [abrir, fechar, substituir])
-
+  const [atual, setAtual] = useState<{ chave: number; modal: Modal } | null>(null)
+  const abrir = useCallback((modal: Modal) => setAtual((a) => ({ chave: (a?.chave ?? 0) + 1, modal })), [])
+  const fechar = useCallback(() => setAtual(null), [])
+  const api = useMemo(() => ({ abrir, fechar }), [abrir, fechar])
   return (
     <Contexto.Provider value={api}>
       {children}
-      {pilha.map(({ chave, modal }) => (
-        <RenderizarModal key={chave} modal={modal} onFechar={fechar} />
-      ))}
+      {atual && <RenderizarModal key={atual.chave} modal={atual.modal} onFechar={fechar} />}
     </Contexto.Provider>
   )
 }
 
 function RenderizarModal({ modal, onFechar }: { modal: Modal; onFechar: () => void }) {
   switch (modal.tipo) {
-    case 'conteudo':
-      return <FormConteudo registro={modal.registro} dataInicial={modal.data} onFechar={onFechar} />
-    case 'detalhe-conteudo':
-      return <DetalheConteudo id={modal.id} onFechar={onFechar} />
+    case 'nova-atividade':
+      return <FormAtividade empresaId={modal.empresaId} titulo={modal.titulo} dataInicial={modal.data} onFechar={onFechar} />
     case 'atividade':
-      return <FormAtividade registro={modal.registro} statusInicial={modal.status} onFechar={onFechar} />
+      return <DetalheAtividade id={modal.id} onFechar={onFechar} />
     case 'conta':
-      return <FormConta registro={modal.registro} aoSalvar={modal.aoSalvar} onFechar={onFechar} />
-    case 'contas':
-      return <PainelContas onFechar={onFechar} />
-    case 'link':
-      return <FormLink registro={modal.registro} onFechar={onFechar} />
-    case 'resultados':
-      return <FormResultados id={modal.id} onFechar={onFechar} />
+      return <FormConta empresaId={modal.empresaId} onFechar={onFechar} />
+    case 'insight':
+      return <FormInsight empresaId={modal.empresaId} id={modal.id} onFechar={onFechar} />
   }
 }
 

@@ -1,391 +1,233 @@
-import { useMemo, useState } from 'react'
-import { AtSign, CalendarDays, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
-import { SeloResponsavel, SeloStatus } from '../components/Badges'
-import { EstadoVazio } from '../components/Estados'
-import { BarraFiltros, Filtro, Segmentado } from '../components/Filtros'
-import { FORMATOS, RESPONSAVEIS, STATUS_CONTEUDO } from '../data/constants'
-import type { Conta, Conteudo } from '../data/types'
-import {
-  NOMES_DIAS,
-  NOMES_DIAS_CURTOS,
-  diaDaSemana,
-  diasDaSemana,
-  formatarData,
-  formatarDataExtensa,
-  formatarIntervalo,
-  formatarMesAno,
-  gradeDoMes,
-  hoje,
-  inicioDaSemana,
-  somarDias,
-  somarMeses,
-} from '../lib/dates'
-import { cx } from '../lib/format'
-import { useDadosEmpresa } from '../state/DadosEmpresa'
+import { useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import type { Atividade, EmpresaId } from '../data/types'
+import { useDadosDaEmpresa } from '../state/Sessao'
 import { useModais } from '../state/Modais'
+import { atividadesDoDia, navegar, periodoDe, VISUALIZACOES, type Visualizacao } from '../lib/calendario'
+import { formatarData, formatarDiaSemana, formatarMesAno, gradeDoMes, hoje, NOMES_DIAS_CURTOS } from '../lib/dates'
+import { cx } from '../lib/format'
 
-type Visao = 'mes' | 'semana'
-const TODOS = 'todos'
-const SEM = 'sem'
-
-const MAX_POR_DIA = 3
-
-export function Cronograma() {
-  const { conteudos, contas } = useDadosEmpresa()
-  const { abrir } = useModais()
-  const [visao, setVisao] = useState<Visao>('mes')
-  const [referencia, setReferencia] = useState(hoje)
-  const [fConta, setFConta] = useState(TODOS)
-  const [fResp, setFResp] = useState(TODOS)
-  const [fFormato, setFFormato] = useState(TODOS)
-  const [fStatus, setFStatus] = useState(TODOS)
-  const dataHoje = hoje()
-
-  const filtrados = useMemo(
-    () =>
-      conteudos
-        .filter(
-          (c) =>
-            (fConta === TODOS || c.contaId === fConta) &&
-            (fResp === TODOS || (c.responsavel ?? SEM) === fResp) &&
-            (fFormato === TODOS || c.formato === fFormato) &&
-            (fStatus === TODOS || c.status === fStatus),
-        )
-        .sort((a, b) => a.horario.localeCompare(b.horario) || a.titulo.localeCompare(b.titulo)),
-    [conteudos, fConta, fResp, fFormato, fStatus],
-  )
-
-  const porDia = useMemo(() => {
-    const m = new Map<string, Conteudo[]>()
-    for (const c of filtrados) m.set(c.data, [...(m.get(c.data) ?? []), c])
-    return m
-  }, [filtrados])
-
-  const ativos = [fConta, fResp, fFormato, fStatus].filter((f) => f !== TODOS).length
-  const limpar = () => {
-    setFConta(TODOS)
-    setFResp(TODOS)
-    setFFormato(TODOS)
-    setFStatus(TODOS)
+export function Cronograma({ empresaId }: { empresaId: EmpresaId }) {
+  const { atividades } = useDadosDaEmpresa(empresaId)
+  const [vis, setVis] = useState<Visualizacao>('Mensal')
+  const [ancora, setAncora] = useState(hoje)
+  const periodo = periodoDe(vis, ancora)
+  const noPeriodo = atividades.filter((a) => a.dataPostagem >= periodo.inicio && a.dataPostagem <= periodo.fim).length
+  const semData = atividades.filter((a) => !a.dataPostagem)
+  const abrirDia = (dia: string) => {
+    setAncora(dia)
+    setVis('Diária')
   }
-
-  if (contas.length === 0 && conteudos.length === 0) {
-    return (
-      <EstadoVazio
-        icone={AtSign}
-        titulo="Nenhuma conta cadastrada. Adicione uma conta para começar."
-        acao="Adicionar conta"
-        onAcao={() => abrir({ tipo: 'conta' })}
-      >
-        <p className="mt-1 max-w-md text-sm text-ink-muted">
-          Contas são os perfis e canais de comunicação da empresa (Instagram, YouTube, LinkedIn…). Cada conteúdo é
-          publicado em uma conta.
-        </p>
-      </EstadoVazio>
-    )
-  }
-  if (conteudos.length === 0) {
-    return (
-      <EstadoVazio
-        icone={CalendarDays}
-        titulo="Nenhum conteúdo programado. Adicione o primeiro conteúdo desta empresa."
-        acao="Adicionar conteúdo"
-        onAcao={() => abrir({ tipo: 'conteudo' })}
-      />
-    )
-  }
-
-  const dias = visao === 'mes' ? gradeDoMes(referencia) : diasDaSemana(referencia)
-  const rotuloPeriodo =
-    visao === 'mes' ? formatarMesAno(referencia) : formatarIntervalo(inicioDaSemana(referencia), somarDias(inicioDaSemana(referencia), 6))
-  const mesAtual = referencia.slice(0, 7)
-  const doPeriodo = visao === 'mes' ? dias.filter((d) => d.startsWith(mesAtual)) : dias
-  const totalNoPeriodo = doPeriodo.reduce((n, d) => n + (porDia.get(d)?.length ?? 0), 0)
-
-  const mover = (dir: 1 | -1) =>
-    setReferencia((r) => (visao === 'mes' ? somarMeses(r, dir) : somarDias(r, 7 * dir)))
-
-  const abrirConteudo = (c: Conteudo) => abrir({ tipo: 'detalhe-conteudo', id: c.id })
-  const adicionarEm = (data: string) => abrir({ tipo: 'conteudo', data })
 
   return (
     <div className="space-y-4">
-      <BarraFiltros ativos={ativos} onLimpar={limpar}>
-        <Filtro
-          rotulo="Conta"
-          valor={fConta}
-          onChange={setFConta}
-          opcoes={[{ valor: TODOS, nome: 'Todas as contas' }, ...contas.map((c) => ({ valor: c.id, nome: c.nome }))]}
-        />
-        <Filtro
-          rotulo="Responsável"
-          valor={fResp}
-          onChange={setFResp}
-          opcoes={[
-            { valor: TODOS, nome: 'Todos' },
-            ...RESPONSAVEIS.map((r) => ({ valor: r.id ?? SEM, nome: r.nome })),
-          ]}
-        />
-        <Filtro
-          rotulo="Formato"
-          valor={fFormato}
-          onChange={setFFormato}
-          opcoes={[{ valor: TODOS, nome: 'Todos' }, ...FORMATOS.map((f) => ({ valor: f, nome: f }))]}
-        />
-        <Filtro
-          rotulo="Status"
-          valor={fStatus}
-          onChange={setFStatus}
-          opcoes={[{ valor: TODOS, nome: 'Todos' }, ...STATUS_CONTEUDO.map((s) => ({ valor: s, nome: s }))]}
-        />
-      </BarraFiltros>
-
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="card flex flex-wrap items-end gap-3 p-3">
+        <div role="group" aria-label="Visualização" className="flex flex-wrap gap-1 rounded-[var(--radius-control)] bg-surface-muted p-1">
+          {VISUALIZACOES.map((v) => (
+            <button
+              key={v}
+              type="button"
+              aria-pressed={vis === v}
+              onClick={() => setVis(v)}
+              className={cx(
+                'rounded-[6px] px-3 py-1.5 text-sm font-medium transition-colors',
+                vis === v ? 'bg-surface text-ink shadow-[var(--shadow-card)]' : 'text-ink-muted hover:text-ink',
+              )}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
         <div className="flex items-center gap-1">
-          <button
-            type="button"
-            className="btn-secondary p-2"
-            onClick={() => mover(-1)}
-            aria-label={visao === 'mes' ? 'Mês anterior' : 'Semana anterior'}
-          >
+          <button type="button" className="btn-secondary px-2.5" aria-label="Período anterior" onClick={() => setAncora(navegar(vis, ancora, -1))}>
             <ChevronLeft className="size-4" aria-hidden />
           </button>
-          <button
-            type="button"
-            className="btn-secondary p-2"
-            onClick={() => mover(1)}
-            aria-label={visao === 'mes' ? 'Próximo mês' : 'Próxima semana'}
-          >
-            <ChevronRight className="size-4" aria-hidden />
-          </button>
-          <button type="button" className="btn-secondary ml-1" onClick={() => setReferencia(hoje())}>
+          <button type="button" className="btn-secondary" onClick={() => setAncora(hoje())}>
             Hoje
           </button>
+          <button type="button" className="btn-secondary px-2.5" aria-label="Próximo período" onClick={() => setAncora(navegar(vis, ancora, 1))}>
+            <ChevronRight className="size-4" aria-hidden />
+          </button>
         </div>
-        <h2 className="flex-1 text-lg font-semibold text-ink first-letter:uppercase" aria-live="polite">
-          {rotuloPeriodo}
-          <span className="ml-2 text-sm font-normal text-ink-muted">
-            {totalNoPeriodo === 1 ? '1 conteúdo' : `${totalNoPeriodo} conteúdos`}
-          </span>
-        </h2>
-        <Segmentado
-          rotulo="Visualização"
-          valor={visao}
-          onChange={setVisao}
-          opcoes={[
-            { valor: 'mes', nome: 'Mês' },
-            { valor: 'semana', nome: 'Semana' },
-          ]}
-        />
+        <label className="flex items-center gap-2 text-sm text-ink-soft">
+          Ir para a data
+          <input type="date" className="field-control w-auto" value={ancora} onChange={(e) => e.target.value && setAncora(e.target.value)} />
+        </label>
       </div>
 
-      {totalNoPeriodo === 0 && (
-        <p className="rounded-[var(--radius-control)] border border-line bg-surface px-3 py-2 text-sm text-ink-muted">
-          {ativos
-            ? 'Nenhum conteúdo corresponde aos filtros neste período.'
-            : 'Nenhum conteúdo programado neste período.'}
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-display text-lg font-semibold text-ink first-letter:uppercase" aria-live="polite">
+          {periodo.titulo}
+        </h2>
+        <p className="text-sm text-ink-muted">
+          {noPeriodo} {noPeriodo === 1 ? 'postagem' : 'postagens'} · horário de Fortaleza
         </p>
+      </div>
+      <p className="-mt-2 text-xs text-ink-muted">
+        Datas planejadas em Atividades. Clique em um dia para abrir a agenda ou em um conteúdo para ver os detalhes.
+      </p>
+
+      {periodo.dias.length > 0 ? (
+        <div className="relative overflow-x-auto pb-2">
+          <div
+            className={cx('grid gap-2', vis === 'Semanal' ? 'min-w-[920px] grid-cols-7' : 'grid-cols-1')}
+          >
+            {periodo.dias.map((dia) => (
+              <DiaAgenda key={dia} dia={dia} atividades={atividadesDoDia(atividades, dia)} compacto={vis === 'Semanal'} />
+            ))}
+          </div>
+        </div>
+      ) : vis === 'Mensal' ? (
+        <div className="relative overflow-x-auto pb-2">
+          <MesCompleto mes={periodo.meses[0]} atividades={atividades} onDia={abrirDia} />
+        </div>
+      ) : (
+        <div className="relative overflow-x-auto pb-2">
+          {/* Trimestral: 1 fileira; Semestral: 2 fileiras; Anual: 4 fileiras — sempre 3 meses por fileira */}
+          <div className="grid min-w-[780px] grid-cols-3 gap-3">
+            {periodo.meses.map((m) => (
+              <MiniMes key={m} mes={m} atividades={atividades} onDia={abrirDia} />
+            ))}
+          </div>
+        </div>
       )}
 
-      {visao === 'mes' ? (
-        <>
-          {/* Grade mensal (tablet e computador) */}
-          <div className="card hidden overflow-hidden md:block">
-            <div className="grid grid-cols-7 border-b border-line bg-surface-muted" aria-hidden>
-              {NOMES_DIAS_CURTOS.map((d) => (
-                <div key={d} className="px-2 py-2 text-xs font-semibold text-ink-muted uppercase">
-                  {d}
-                </div>
-              ))}
-            </div>
-            <ul className="grid grid-cols-7">
-              {dias.map((d, i) => {
-                const lista = porDia.get(d) ?? []
-                const foraDoMes = !d.startsWith(mesAtual)
-                return (
-                  <li
-                    key={d}
-                    aria-label={`${formatarDataExtensa(d)}${lista.length ? `, ${lista.length} conteúdo(s)` : ''}`}
-                    className={cx(
-                      'group min-h-32 border-line p-1.5',
-                      i % 7 !== 6 && 'border-r',
-                      i < dias.length - 7 && 'border-b',
-                      foraDoMes && 'bg-surface-muted/60',
-                    )}
-                  >
-                    <div className="mb-1 flex items-center justify-between">
-                      <span
-                        className={cx(
-                          'inline-flex size-6 items-center justify-center rounded-full text-xs font-medium',
-                          d === dataHoje ? 'bg-brand-700 text-brand-contrast' : foraDoMes ? 'text-ink-muted' : 'text-ink-soft',
-                        )}
-                      >
-                        {Number(d.slice(8))}
-                      </span>
-                      <BotaoAdicionarDia data={d} onClick={() => adicionarEm(d)} />
-                    </div>
-                    <ul className="space-y-1">
-                      {lista.slice(0, MAX_POR_DIA).map((c) => (
-                        <li key={c.id}>
-                          <CartaoConteudo conteudo={c} conta={contas.find((x) => x.id === c.contaId)} compacto onAbrir={abrirConteudo} />
-                        </li>
-                      ))}
-                    </ul>
-                    {lista.length > MAX_POR_DIA && (
-                      <button
-                        type="button"
-                        className="mt-1 w-full rounded px-1 py-0.5 text-left text-xs font-medium text-brand-700 hover:bg-surface-muted"
-                        onClick={() => {
-                          setReferencia(d)
-                          setVisao('semana')
-                        }}
-                      >
-                        + {lista.length - MAX_POR_DIA} mais
-                        <span className="sr-only"> em {formatarData(d)} (abre a semana)</span>
-                      </button>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-          {/* Agenda (celular) */}
-          <div className="md:hidden">
-            <ListaAgenda
-              dias={doPeriodo.filter((d) => porDia.has(d))}
-              porDia={porDia}
-              contas={contas}
-              dataHoje={dataHoje}
-              onAbrir={abrirConteudo}
-              onAdicionar={adicionarEm}
-            />
-          </div>
-        </>
-      ) : (
-        <ul className="grid gap-3 md:grid-cols-7 md:gap-2">
-          {dias.map((d) => {
-            const lista = porDia.get(d) ?? []
-            return (
-              <li key={d} className={cx('card flex min-h-24 flex-col p-2 md:min-h-80', d === dataHoje && 'ring-2 ring-brand-500')}>
-                <div className="mb-2 flex items-center justify-between gap-1 border-b border-line pb-1.5">
-                  <h3 className="text-sm">
-                    <span className="font-semibold text-ink">{NOMES_DIAS[diaDaSemana(d)]}</span>{' '}
-                    <span className="text-ink-muted">{formatarData(d).slice(0, 5)}</span>
-                    {d === dataHoje && <span className="ml-1 text-xs font-semibold text-brand-700">· Hoje</span>}
-                  </h3>
-                  <BotaoAdicionarDia data={d} onClick={() => adicionarEm(d)} sempreVisivel />
-                </div>
-                {lista.length === 0 ? (
-                  <p className="px-1 text-xs text-ink-muted">Sem conteúdos</p>
-                ) : (
-                  <ul className="space-y-1.5">
-                    {lista.map((c) => (
-                      <li key={c.id}>
-                        <CartaoConteudo conteudo={c} conta={contas.find((x) => x.id === c.contaId)} onAbrir={abrirConteudo} />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            )
-          })}
-        </ul>
-      )}
+      <details className="card p-4">
+        <summary className="cursor-pointer text-sm font-medium text-ink">Sem data definida ({semData.length})</summary>
+        <div className="mt-3 space-y-2">
+          {semData.length ? (
+            semData.map((a) => <BotaoEvento key={a.id} a={a} />)
+          ) : (
+            <p className="text-sm text-ink-muted">Todas as atividades têm data definida.</p>
+          )}
+        </div>
+      </details>
     </div>
   )
 }
 
-function BotaoAdicionarDia({ data, onClick, sempreVisivel }: { data: string; onClick: () => void; sempreVisivel?: boolean }) {
+function BotaoEvento({ a, compacto }: { a: Atividade; compacto?: boolean }) {
+  const { abrir } = useModais()
+  const cor = {
+    'Em produção': 'border-l-producao',
+    'Ajustes solicitados': 'border-l-ajustes',
+    'Aguardando aprovação': 'border-l-aprovacao',
+    Aprovado: 'border-l-aprovado',
+  }[a.status]
   return (
     <button
       type="button"
-      onClick={onClick}
-      aria-label={`Adicionar conteúdo em ${formatarData(data)}`}
-      title="Adicionar conteúdo"
+      onClick={() => abrir({ tipo: 'atividade', id: a.id })}
       className={cx(
-        'rounded p-0.5 text-ink-muted hover:bg-surface-muted hover:text-ink focus-visible:opacity-100',
-        !sempreVisivel && 'opacity-0 group-hover:opacity-100',
+        'block w-full rounded-[6px] border border-l-[3px] border-line bg-surface px-2 py-1.5 text-left transition-colors hover:bg-surface-muted',
+        cor,
       )}
     >
-      <Plus className="size-4" aria-hidden />
-    </button>
-  )
-}
-
-function CartaoConteudo({
-  conteudo: c,
-  conta,
-  compacto,
-  onAbrir,
-}: {
-  conteudo: Conteudo
-  conta?: Conta
-  compacto?: boolean
-  onAbrir: (c: Conteudo) => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onAbrir(c)}
-      className={cx(
-        'w-full rounded-[var(--radius-control)] border border-line bg-surface text-left shadow-[var(--shadow-card)] transition-colors hover:border-line-strong hover:bg-surface-muted',
-        compacto ? 'p-1.5' : 'p-2',
-      )}
-    >
-      <span className="flex items-center gap-1.5 text-[11px] text-ink-muted">
-        <span className="font-semibold text-ink-soft tabular-nums">{c.horario}</span>
-        <span aria-hidden>·</span>
-        <span>{c.formato}</span>
-      </span>
-      <span className={cx('mt-0.5 block font-medium text-ink', compacto ? 'line-clamp-2 text-xs' : 'text-sm')}>{c.titulo}</span>
-      <span className="mt-0.5 block truncate text-[11px] text-ink-muted">
-        <span className="sr-only">Conta: </span>
-        {conta?.nome ?? 'Conta removida'}
-      </span>
-      <span className={cx('mt-1 flex gap-1', compacto ? 'flex-col items-start' : 'flex-wrap items-center justify-between')}>
-        <SeloStatus status={c.status} />
-        <SeloResponsavel id={c.responsavel} className={compacto ? 'max-w-full [&>span:first-child]:size-5' : undefined} />
+      <span className="block text-xs font-semibold text-ink tabular-nums">{a.horaPostagem || 'Hora a definir'}</span>
+      <span className={cx('block text-sm text-ink-soft', compacto && 'line-clamp-3 text-xs')}>{a.titulo}</span>
+      <span className="block text-[11px] text-ink-muted">
+        {a.formato} · {a.status}
       </span>
     </button>
   )
 }
 
-function ListaAgenda({
-  dias,
-  porDia,
-  contas,
-  dataHoje,
-  onAbrir,
-  onAdicionar,
-}: {
-  dias: string[]
-  porDia: Map<string, Conteudo[]>
-  contas: Conta[]
-  dataHoje: string
-  onAbrir: (c: Conteudo) => void
-  onAdicionar: (d: string) => void
-}) {
-  if (dias.length === 0) return null
+function DiaAgenda({ dia, atividades, compacto }: { dia: string; atividades: Atividade[]; compacto: boolean }) {
+  const ehHoje = dia === hoje()
   return (
-    <ul className="space-y-3">
-      {dias.map((d) => (
-        <li key={d} className="card p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-ink first-letter:uppercase">
-              {formatarDataExtensa(d)}
-              {d === dataHoje && <span className="ml-1 text-brand-700">· Hoje</span>}
-            </h3>
-            <BotaoAdicionarDia data={d} onClick={() => onAdicionar(d)} sempreVisivel />
+    <section
+      aria-label={`${formatarData(dia)}: ${atividades.length} postagens`}
+      className={cx('card flex min-h-52 flex-col gap-2 p-3', ehHoje && 'ring-2 ring-brand-500')}
+    >
+      <h3 className="flex items-center justify-between gap-2 text-xs font-semibold text-ink-soft first-letter:uppercase">
+        <span className="first-letter:uppercase">{formatarDiaSemana(dia)}</span>
+        {ehHoje && <span className="rounded bg-brand-700 px-1.5 py-0.5 text-[10px] text-white">Hoje</span>}
+      </h3>
+      {atividades.length ? (
+        atividades.map((a) => <BotaoEvento key={a.id} a={a} compacto={compacto} />)
+      ) : (
+        <p className="text-xs text-ink-muted">Nenhuma postagem planejada.</p>
+      )}
+    </section>
+  )
+}
+
+function MesCompleto({ mes, atividades, onDia }: { mes: string; atividades: Atividade[]; onDia: (d: string) => void }) {
+  const dias = gradeDoMes(mes)
+  const mesAtual = mes.slice(0, 7)
+  return (
+    <div className="card min-w-[760px] overflow-hidden">
+      <div className="grid grid-cols-7 border-b border-line bg-surface-muted">
+        {NOMES_DIAS_CURTOS.map((d) => (
+          <div key={d} className="px-2 py-1.5 text-xs font-semibold text-ink-muted">
+            {d}
           </div>
-          <ul className="space-y-2">
-            {porDia.get(d)!.map((c) => (
-              <li key={c.id}>
-                <CartaoConteudo conteudo={c} conta={contas.find((x) => x.id === c.contaId)} onAbrir={onAbrir} />
-              </li>
-            ))}
-          </ul>
-        </li>
-      ))}
-    </ul>
+        ))}
+      </div>
+      <div className="grid grid-cols-7">
+        {dias.map((dia) => {
+          const fora = dia.slice(0, 7) !== mesAtual
+          const lista = atividadesDoDia(atividades, dia)
+          const ehHoje = dia === hoje()
+          return (
+            <div key={dia} className={cx('min-h-28 border-r border-b border-line p-1.5 [&:nth-child(7n)]:border-r-0', fora && 'bg-canvas/60')}>
+              <button
+                type="button"
+                onClick={() => onDia(dia)}
+                aria-label={`${formatarData(dia)}: ${lista.length} postagens. Abrir agenda do dia`}
+                className={cx(
+                  'mb-1 inline-flex size-7 items-center justify-center rounded-full text-xs font-medium tabular-nums hover:bg-surface-muted',
+                  ehHoje ? 'bg-brand-700 text-white hover:bg-brand-600' : fora ? 'text-ink-muted/70' : 'text-ink-soft',
+                )}
+              >
+                {Number(dia.slice(8))}
+              </button>
+              <div className="space-y-1">
+                {lista.map((a) => (
+                  <BotaoEvento key={a.id} a={a} compacto />
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function MiniMes({ mes, atividades, onDia }: { mes: string; atividades: Atividade[]; onDia: (d: string) => void }) {
+  const mesAtual = mes.slice(0, 7)
+  return (
+    <section className="card p-3" aria-label={formatarMesAno(mes)}>
+      <h3 className="mb-2 text-sm font-semibold text-ink first-letter:uppercase">{formatarMesAno(mes)}</h3>
+      <div className="grid grid-cols-7 gap-0.5 text-center">
+        {NOMES_DIAS_CURTOS.map((d) => (
+          <span key={d} className="py-0.5 text-[10px] font-semibold text-ink-muted">
+            {d}
+          </span>
+        ))}
+        {gradeDoMes(mes).map((dia) => {
+          if (dia.slice(0, 7) !== mesAtual) return <span key={dia} aria-hidden />
+          const n = atividadesDoDia(atividades, dia).length
+          const ehHoje = dia === hoje()
+          return (
+            <button
+              key={dia}
+              type="button"
+              onClick={() => onDia(dia)}
+              aria-label={`${formatarData(dia)}: ${n} postagens`}
+              className={cx(
+                'relative flex h-8 flex-col items-center justify-center rounded-[6px] text-xs tabular-nums hover:bg-surface-muted',
+                ehHoje && 'bg-brand-700 font-semibold text-white hover:bg-brand-600',
+                !ehHoje && n > 0 && 'bg-brand-50 font-semibold text-brand-700',
+              )}
+            >
+              {Number(dia.slice(8))}
+              {n > 0 && <span className="text-[9px] leading-none">{n}</span>}
+            </button>
+          )
+        })}
+      </div>
+    </section>
   )
 }

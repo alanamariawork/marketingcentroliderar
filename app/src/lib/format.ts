@@ -21,3 +21,10 @@ export function ehUrlValida(valor: string): boolean {
 export function cx(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(' ')
 }
+
+const decimal = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
+
+/** Número com até duas casas decimais; `null` vira "—" (não informado). */
+export function formatarDecimal(n: number | null | undefined, sufixo = ''): string {
+  return n == null ? '—' : decimal.format(n) + sufixo
+}

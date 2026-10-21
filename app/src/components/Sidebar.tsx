@@ -7,6 +7,7 @@ import {
   KanbanSquare,
   LayoutDashboard,
   LineChart,
+  Plus,
   X,
   type LucideIcon,
 } from 'lucide-react'
@@ -14,6 +15,7 @@ import { EMPRESAS, PAGINAS } from '../data/constants'
 import type { EmpresaId, PaginaId } from '../data/types'
 import { hrefDaRota, type Rota } from '../lib/rotas'
 import { cx } from '../lib/format'
+import { Marca } from './Marca'
 
 export const ICONES_PAGINA: Record<PaginaId, LucideIcon> = {
   cronograma: CalendarDays,
@@ -35,7 +37,14 @@ function lerExpandidas(atual: EmpresaId): EmpresaId[] {
   return [atual]
 }
 
-export function Sidebar({ rota, aoNavegar }: { rota: Rota; aoNavegar?: () => void }) {
+interface PropsSidebar {
+  rota: Rota
+  aoNavegar?: () => void
+  /** "Adicionar conta" de cada empresa. */
+  onAdicionarConta: (empresaId: EmpresaId) => void
+}
+
+export function Sidebar({ rota, aoNavegar, onAdicionarConta }: PropsSidebar) {
   const [expandidas, setExpandidas] = useState<EmpresaId[]>(() => lerExpandidas(rota.empresaId))
 
   // A empresa ativa fica sempre aberta.
@@ -57,9 +66,9 @@ export function Sidebar({ rota, aoNavegar }: { rota: Rota; aoNavegar?: () => voi
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-ink">
       <div className="px-5 pt-5 pb-4">
-        <p className="font-display text-lg leading-tight font-semibold tracking-tight text-white">Grupo Mendes</p>
-        <p className="text-xs text-sidebar-muted">Gestão de Marketing</p>
+        <Marca />
       </div>
+      <p className="px-5 pb-1.5 text-[10px] font-semibold tracking-[0.12em] text-sidebar-muted uppercase">Empresas</p>
 
       <nav aria-label="Empresas e páginas" className="flex-1 overflow-y-auto px-3 pb-4">
         <ul className="space-y-1">
@@ -114,6 +123,20 @@ export function Sidebar({ rota, aoNavegar }: { rota: Rota; aoNavegar?: () => voi
                       </li>
                     )
                   })}
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        aoNavegar?.()
+                        onAdicionarConta(empresa.id)
+                      }}
+                      className="mt-1 flex w-full items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 py-1.5 text-left text-sm text-sidebar-muted transition-colors hover:bg-white/5 hover:text-sidebar-ink"
+                    >
+                      <Plus className="size-4 shrink-0" aria-hidden />
+                      Adicionar conta
+                      <span className="sr-only"> em {empresa.nome}</span>
+                    </button>
+                  </li>
                 </ul>
               </li>
             )
@@ -121,15 +144,32 @@ export function Sidebar({ rota, aoNavegar }: { rota: Rota; aoNavegar?: () => voi
         </ul>
       </nav>
 
-      <p className="border-t border-white/10 px-5 py-3 text-[11px] leading-snug text-sidebar-muted">
-        Modo de demonstração — dados salvos neste navegador
-      </p>
+      <div className="space-y-1 border-t border-white/10 px-5 py-4 text-[11px] leading-snug text-sidebar-muted">
+        <p className="text-[10px] font-semibold tracking-[0.12em] uppercase">Aprovação centralizada</p>
+        <p className="flex items-center gap-2 text-sm text-sidebar-ink">
+          <span className="inline-flex size-6 items-center justify-center rounded-full bg-white/15 text-[11px] font-semibold" aria-hidden>
+            K
+          </span>
+          Kélvia · aprovação final
+        </p>
+        <p>Demonstração local · sem integrações externas</p>
+      </div>
     </div>
   )
 }
 
 /** Versão para celular: painel lateral sobreposto, com foco preso e Esc para fechar. */
-export function SidebarMovel({ aberta, onFechar, rota }: { aberta: boolean; onFechar: () => void; rota: Rota }) {
+export function SidebarMovel({
+  aberta,
+  onFechar,
+  rota,
+  onAdicionarConta,
+}: {
+  aberta: boolean
+  onFechar: () => void
+  rota: Rota
+  onAdicionarConta: (empresaId: EmpresaId) => void
+}) {
   useEffect(() => {
     if (!aberta) return
     const anterior = document.activeElement as HTMLElement | null
@@ -170,7 +210,7 @@ export function SidebarMovel({ aberta, onFechar, rota }: { aberta: boolean; onFe
         aria-label="Menu de navegação"
         className="absolute inset-y-0 left-0 w-72 max-w-[85vw] shadow-[var(--shadow-overlay)]"
       >
-        <Sidebar rota={rota} aoNavegar={onFechar} />
+        <Sidebar rota={rota} aoNavegar={onFechar} onAdicionarConta={onAdicionarConta} />
         <button
           type="button"
           onClick={onFechar}

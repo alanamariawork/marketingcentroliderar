@@ -64,16 +64,16 @@ export function diaDaSemana(data: string): number {
   return paraUTC(data).getUTCDay()
 }
 
-/** Semana de domingo a sábado. */
+/** Semana de segunda a domingo, como no HTML de referência. */
 export function inicioDaSemana(data: string): string {
-  return somarDias(data, -diaDaSemana(data))
+  return somarDias(data, -((diaDaSemana(data) + 6) % 7))
 }
 
 export function diasEntre(inicio: string, fim: string): number {
   return Math.round((paraUTC(fim).getTime() - paraUTC(inicio).getTime()) / 86_400_000)
 }
 
-/** Dias exibidos na grade mensal (semanas completas, domingo a sábado). */
+/** Dias exibidos na grade mensal (semanas completas, segunda a domingo). */
 export function gradeDoMes(data: string): string[] {
   const primeiro = inicioDaSemana(inicioDoMes(data))
   const ultimo = somarDias(inicioDaSemana(fimDoMes(data)), 6)
@@ -120,8 +120,13 @@ export function formatarIntervalo(inicio: string, fim: string): string {
   return `${a} – ${b}`
 }
 
-export const NOMES_DIAS_CURTOS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-export const NOMES_DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+/** Cabeçalho das grades, começando na segunda-feira. */
+export const NOMES_DIAS_CURTOS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+
+/** segunda-feira, 14 de out. */
+export function formatarDiaSemana(data: string): string {
+  return fmt({ weekday: 'long', day: 'numeric', month: 'short' }).format(paraUTC(data))
+}
 
 /** Data e hora de um carimbo ISO, exibidos no fuso de Fortaleza. */
 export function formatarCarimbo(iso: string): string {
@@ -133,45 +138,4 @@ export function formatarCarimbo(iso: string): string {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(iso))
-}
-
-export type Periodo = 'todos' | '7d' | '30d' | '90d' | 'mes-atual' | 'mes-anterior' | 'ano-atual'
-
-export const PERIODOS: { id: Periodo; nome: string }[] = [
-  { id: '30d', nome: 'Últimos 30 dias' },
-  { id: '7d', nome: 'Últimos 7 dias' },
-  { id: '90d', nome: 'Últimos 90 dias' },
-  { id: 'mes-atual', nome: 'Este mês' },
-  { id: 'mes-anterior', nome: 'Mês anterior' },
-  { id: 'ano-atual', nome: 'Este ano' },
-  { id: 'todos', nome: 'Todo o período' },
-]
-
-/** Intervalo inclusivo de um período; `null` = sem limite. */
-export function intervaloDoPeriodo(
-  periodo: Periodo,
-  referencia: string = hoje(),
-): { inicio: string; fim: string } | null {
-  switch (periodo) {
-    case 'todos':
-      return null
-    case '7d':
-      return { inicio: somarDias(referencia, -6), fim: referencia }
-    case '30d':
-      return { inicio: somarDias(referencia, -29), fim: referencia }
-    case '90d':
-      return { inicio: somarDias(referencia, -89), fim: referencia }
-    case 'mes-atual':
-      return { inicio: inicioDoMes(referencia), fim: fimDoMes(referencia) }
-    case 'mes-anterior': {
-      const inicio = somarMeses(referencia, -1)
-      return { inicio, fim: fimDoMes(inicio) }
-    }
-    case 'ano-atual':
-      return { inicio: `${referencia.slice(0, 4)}-01-01`, fim: `${referencia.slice(0, 4)}-12-31` }
-  }
-}
-
-export function dentroDoIntervalo(data: string, intervalo: { inicio: string; fim: string } | null) {
-  return !intervalo || (data >= intervalo.inicio && data <= intervalo.fim)
 }
