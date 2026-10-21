@@ -58,7 +58,7 @@ Age que existe na branch principal.
 | Páginas | `src/pages/` (Cronograma, Atividades, Insights, Drive, Dashboard) |
 | Formulários | `src/forms/` (atividade, detalhe/aprovação, material, conta, resultados) |
 | Dados importados | `src/data/importados/insights.json` (1.203 registros) |
-| Catálogo do Drive | `public/dados/drive-catalogo.json` (68.592 itens, baixado só ao abrir o Drive) |
+| Catálogo do Drive | `public/dados/drive-catalogo/` (68.592 itens em 3 partes + índice, baixado só ao abrir o Drive) |
 | Regras de cálculo | `src/lib/insights.ts` (score, agregação, collabs, funil, validação), `src/lib/aprovacao.ts` |
 | Filtros e pesquisa | `src/lib/insights.ts` (filtros), `src/lib/drive.ts` (pesquisa e capas) |
 | Calendário | `src/lib/calendario.ts`, `src/lib/dates.ts` (America/Fortaleza, sem deslocamento de dia) |

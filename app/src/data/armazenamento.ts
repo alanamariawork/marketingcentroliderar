@@ -6,7 +6,7 @@
  *   das planilhas são acrescentados sem sobrescrever nada que já esteja salvo.
  * - Atividades, contas e anexos de vídeo: só na memória da sessão (como na
  *   referência). Ver docs/IMPLEMENTACAO.md.
- * - Catálogo do Drive: arquivo de dados próprio (public/dados/drive-catalogo.json),
+ * - Catálogo do Drive: arquivos de dados próprios (public/dados/drive-catalogo/),
  *   carregado sob demanda e nunca gravado no localStorage.
  */
 import { mesclarImportados } from '../lib/insights'
@@ -100,12 +100,20 @@ export async function carregarInsightsImportados(): Promise<RegistroInsight[]> {
 
 let catalogo: Promise<ItemDrive[]> | null = null
 
-/** Catálogo do Drive (68.592 itens), baixado uma vez por sessão. */
+async function baixarJson<T>(caminho: string): Promise<T> {
+  const r = await fetch(`${import.meta.env.BASE_URL}dados/drive-catalogo/${caminho}`)
+  if (!r.ok) throw new Error(String(r.status))
+  return r.json() as Promise<T>
+}
+
+/** Catálogo do Drive (68.592 itens, em partes), baixado uma vez por sessão. */
 export function carregarCatalogoDrive(): Promise<ItemDrive[]> {
-  catalogo ??= fetch(`${import.meta.env.BASE_URL}dados/drive-catalogo.json`)
-    .then((r) => {
-      if (!r.ok) throw new Error(String(r.status))
-      return r.json() as Promise<ItemDrive[]>
+  catalogo ??= baixarJson<{ total: number; partes: string[] }>('indice.json')
+    .then(async (indice) => {
+      const partes = await Promise.all(indice.partes.map((p) => baixarJson<ItemDrive[]>(p)))
+      const itens = partes.flat()
+      if (itens.length !== indice.total) throw new Error('catálogo incompleto')
+      return itens
     })
     .catch((e) => {
       catalogo = null

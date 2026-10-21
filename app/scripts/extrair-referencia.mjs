@@ -3,7 +3,7 @@
 // Não altera nenhum valor: os registros são copiados exatamente como estão.
 //
 // Uso: node scripts/extrair-referencia.mjs
-import { readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 const raiz = (p) => fileURLToPath(new URL(p, import.meta.url))
@@ -21,7 +21,19 @@ const drive = extrair('driveCatalog')
 // Um registro por linha: diffs legíveis e o mesmo conteúdo do HTML.
 const umPorLinha = (lista) => '[\n' + lista.map((x) => JSON.stringify(x)).join(',\n') + '\n]\n'
 writeFileSync(raiz('../src/data/importados/insights.json'), umPorLinha(insights))
-writeFileSync(raiz('../public/dados/drive-catalogo.json'), umPorLinha(drive))
+// Catálogo dividido em partes de até 25.000 itens (cada arquivo fica bem abaixo
+// de 16 MB, limite de hospedagens estáticas) e um índice com o total esperado.
+const POR_PARTE = 25_000
+const pasta = raiz('../public/dados/drive-catalogo/')
+rmSync(pasta, { recursive: true, force: true })
+mkdirSync(pasta, { recursive: true })
+const partes = []
+for (let i = 0; i < drive.length; i += POR_PARTE) {
+  const nome = `parte-${partes.length + 1}.json`
+  writeFileSync(pasta + nome, umPorLinha(drive.slice(i, i + POR_PARTE)))
+  partes.push(nome)
+}
+writeFileSync(pasta + 'indice.json', JSON.stringify({ total: drive.length, partes }, null, 2) + '\n')
 
 const contar = (lista, f) => lista.reduce((m, x) => ((m[f(x)] = (m[f(x)] ?? 0) + 1), m), {})
 console.log('Insights importados:', insights.length, contar(insights, (x) => x.account))
