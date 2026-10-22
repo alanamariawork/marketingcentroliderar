@@ -57,7 +57,7 @@ export function FormAtividade({
         historico: [],
         demonstrativa: false,
       })
-      feedback.sucesso('Atividade e material salvos nesta sessão. Abra a entrega para visualizar e enviar à aprovação.')
+      feedback.sucesso('Atividade e material salvos nesta sessão. Abra a entrega para visualizar o material.')
       onFechar()
     })
   }

@@ -6,7 +6,7 @@ export type EmpresaId = 'smart-games' | 'up-machines' | 'centro-liderar'
 export type NomeEmpresa = 'Smart Games' | 'Up Machines' | 'Centro Liderar'
 export type PaginaId = 'cronograma' | 'atividades' | 'insights' | 'drive' | 'dashboard'
 
-/** Perfil simulado. Não é autenticação: serve só para demonstrar o fluxo de aprovação. */
+/** Pessoa com permissão no fluxo de aprovação. Só é conhecida quando houver autenticação real. */
 export type Perfil = 'Carlos' | 'Kélvia'
 
 /** Anny continua aceita em registros antigos, mas não aparece nas novas atribuições. */
@@ -26,7 +26,7 @@ export type StatusAtividade = 'Em produção' | 'Ajustes solicitados' | 'Aguarda
 export interface EventoHistorico {
   /** Carimbo ISO; `null` nos registros de demonstração herdados da referência. */
   quando: string | null
-  autor: Perfil | 'Sistema'
+  autor: Perfil | 'Sistema' | 'Sem identificação'
   texto: string
 }
 
@@ -116,10 +116,18 @@ export interface RegistroInsight extends Metricas {
 
 export type TipoItemDrive = 'Pasta' | 'Documento' | 'Foto' | 'Vídeo'
 
-/** Item do catálogo do Drive, exatamente como no HTML de referência. */
+/**
+ * Item do catálogo do Drive, exatamente como no HTML de referência. O campo
+ * `type` foi gerado a partir do MIME type do Drive (conferido por amostragem:
+ * image/* → Foto, video/* → Vídeo, atalhos e demais formatos → Documento).
+ */
 export interface ItemDrive {
   name: string
   url: string
   path: string
   type: TipoItemDrive
+  /** MIME type do Drive, quando o catálogo trouxer esse dado (prioritário). */
+  mimeType?: string
 }
+
+export type TipoMidia = 'Foto' | 'Vídeo'

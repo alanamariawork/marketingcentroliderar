@@ -157,3 +157,50 @@ export const DRIVE_PALAVRAS_IGNORADAS = [
 ]
 
 export const DRIVE_ATALHOS = ['Jaciara', 'Bastidores', 'Depoimentos', 'Tráfego', 'Equipe']
+
+/**
+ * Classificação de mídia. Ordem de evidência: MIME type (quando existir), depois
+ * o tipo do catálogo (derivado do MIME), e só então a extensão do arquivo.
+ * Arquivos de criação (Corel, Photoshop, Illustrator) têm MIME de imagem, mas
+ * não são fotos: ficam fora da biblioteca.
+ */
+export const DRIVE_EXTENSOES_FOTO = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif', 'tif', 'tiff', 'bmp', 'arw', 'cr2', 'cr3', 'nef', 'dng', 'raf', 'orf']
+export const DRIVE_EXTENSOES_VIDEO = ['mp4', 'mov', 'm4v', 'webm', 'mkv', 'avi', 'wmv', 'mpeg', 'mpg', '3gp']
+export const DRIVE_EXTENSOES_NAO_MIDIA = ['cdr', 'psd', 'psb', 'ai', 'eps', 'svg', 'xcf']
+/** Formatos com miniatura confiável para capa (RAW e HEIC podem não gerar miniatura). */
+export const DRIVE_EXTENSOES_CAPA = ['jpg', 'jpeg', 'png', 'webp']
+
+/** Palavras que indicam uma pasta de fotos (para identificar a pessoa pela pasta imediata). */
+export const DRIVE_PASTA_DE_FOTOS = ['foto', 'fotos', 'ensaio', 'ensaios', 'retrato', 'retratos']
+
+export type IconeTema = 'pessoa' | 'predio' | 'estrela' | 'diamante' | 'camera' | 'transmissao' | 'evento' | 'alvo'
+
+export interface TemaDrive {
+  id: string
+  rotulo: string
+  /** Palavras (sem acento, minúsculas) que identificam a pasta pelo nome dela ou de uma pasta acima. */
+  termosPasta: string[]
+  /**
+   * Palavras que identificam a foto para virar capa: no nome do arquivo, ou numa
+   * pasta imediata de fotos (com "foto", "fotos", "ensaio" ou "retrato" no nome).
+   * `null` = qualquer foto da pasta representa o tema (ex.: fotos do próprio evento).
+   */
+  termosFoto: string[] | null
+  icone: IconeTema
+  descricao: string
+}
+
+/**
+ * Temas das capas, do mais específico ao mais geral. A primeira pasta do caminho,
+ * de baixo para cima, que tiver um desses termos define o tema.
+ */
+export const DRIVE_TEMAS: TemaDrive[] = [
+  { id: 'jaciara', rotulo: 'Jaciara', termosPasta: ['jaciara', 'jacy', 'jaci'], termosFoto: ['jaciara', 'jacy', 'jaci'], icone: 'pessoa', descricao: 'Imagens da Jaciara' },
+  { id: 'real-time', rotulo: 'Real Time', termosPasta: ['real time', 'realtime', 'tempo real'], termosFoto: null, icone: 'evento', descricao: 'Cobertura de eventos' },
+  { id: 'transmissao', rotulo: 'Transmissão', termosPasta: ['transmissao', 'live', 'lives', 'aula', 'aulas'], termosFoto: null, icone: 'transmissao', descricao: 'Lives e aulas' },
+  { id: 'captacao', rotulo: 'Captação de Conteúdo', termosPasta: ['captacao', 'bastidor', 'bastidores', 'gravacao', 'gravacoes', 'bruto', 'brutos', 'brutas'], termosFoto: null, icone: 'camera', descricao: 'Bastidores e gravações' },
+  { id: 'trafego', rotulo: 'Tráfego', termosPasta: ['trafego', 'criativo', 'criativos', 'anuncio', 'anuncios', 'ads'], termosFoto: null, icone: 'alvo', descricao: 'Criativos de campanhas' },
+  { id: 'mqa', rotulo: 'MQA', termosPasta: ['mqa', 'mulher que age', 'imersao'], termosFoto: null, icone: 'estrela', descricao: 'Imagens da imersão' },
+  { id: 'diamante', rotulo: 'Diamante', termosPasta: ['diamante', 'diamantes'], termosFoto: null, icone: 'diamante', descricao: 'Encontros e mentorias' },
+  { id: 'centro-liderar', rotulo: 'Centro Liderar', termosPasta: ['centro liderar', 'equipe', 'institucional'], termosFoto: ['equipe', 'espaco', 'estrutura', 'fachada', 'institucional', 'sede'], icone: 'predio', descricao: 'Equipe, espaço e conteúdo institucional' },
+]

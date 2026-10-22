@@ -4,8 +4,8 @@ Sistema de gestão de marketing exclusivo do **Centro Liderar**, com Cronograma,
 Insights, Drive e Dashboard e as contas (perfis e canais) administradas pelo Centro Liderar. Implementa o modelo aprovado em
 `../referencia/marketing-grupo-mendes.html` (preservado sem alterações).
 
-Somente frontend: sem backend, autenticação ou integrações externas. O perfil (Carlos/Kélvia) é
-simulado e não representa autenticação real.
+Somente frontend: sem backend, autenticação ou integrações externas. Sem login, ninguém é
+identificado e o envio e a aprovação ficam indisponíveis (ver `src/state/Autenticacao.ts`).
 
 ```bash
 npm install

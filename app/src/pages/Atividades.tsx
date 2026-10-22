@@ -1,18 +1,16 @@
-import { useState } from 'react'
 import { ArrowRight, KanbanSquare, Paperclip } from 'lucide-react'
 import { COLUNAS_KANBAN } from '../data/constants'
 import type { Atividade, EmpresaId } from '../data/types'
 import { useDadosDaEmpresa, useSessao } from '../state/Sessao'
 import { useModais } from '../state/Modais'
 import { rotuloAgendamento } from '../lib/calendario'
-import { cx } from '../lib/format'
+import { podeDecidir } from '../lib/aprovacao'
 import { EstadoVazio } from '../components/Estados'
 import { Etiqueta, SeloPessoa } from '../components/Selos'
 
 /** Kanban da referência. "Ajustes solicitados" volta para a coluna Em produção, sinalizado. */
 export function Atividades({ empresaId, onNova }: { empresaId: EmpresaId; onNova: () => void }) {
   const { atividades } = useDadosDaEmpresa(empresaId)
-  const [aguardandoKelvia, setAguardandoKelvia] = useState(false)
 
   if (!atividades.length) {
     return (
@@ -32,21 +30,11 @@ export function Atividades({ empresaId, onNova }: { empresaId: EmpresaId; onNova
           {atividades.length} {atividades.length === 1 ? 'entrega' : 'entregas'}
           {demonstrativas > 0 && ` · ${demonstrativas} demonstrativa${demonstrativas > 1 ? 's' : ''}`}
         </p>
-        <button
-          type="button"
-          aria-pressed={aguardandoKelvia}
-          onClick={() => setAguardandoKelvia((v) => !v)}
-          className={cx('btn-secondary', aguardandoKelvia && 'border-brand-600 bg-brand-50 text-brand-700')}
-        >
-          {aguardandoKelvia ? '✓ ' : ''}Aguardando Kélvia
-        </button>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
         {COLUNAS_KANBAN.map((coluna) => {
-          const lista = atividades.filter(
-            (a) =>
-              (coluna === 'Em produção' ? a.status === 'Em produção' || a.status === 'Ajustes solicitados' : a.status === coluna) &&
-              (!aguardandoKelvia || a.status === 'Aguardando aprovação'),
+          const lista = atividades.filter((a) =>
+            coluna === 'Em produção' ? a.status === 'Em produção' || a.status === 'Ajustes solicitados' : a.status === coluna,
           )
           return (
             <section key={coluna} aria-labelledby={`coluna-${coluna}`} className="rounded-[var(--radius-card)] bg-surface-muted/70 p-3">
@@ -66,9 +54,9 @@ export function Atividades({ empresaId, onNova }: { empresaId: EmpresaId; onNova
 }
 
 function Cartao({ a }: { a: Atividade }) {
-  const { perfil } = useSessao()
+  const { usuario } = useSessao()
   const { abrir } = useModais()
-  const revisar = a.status === 'Aguardando aprovação' && perfil === 'Kélvia'
+  const revisar = a.status === 'Aguardando aprovação' && podeDecidir(usuario, a)
   return (
     <article className="card space-y-2.5 p-3.5">
       <p className="text-xs text-ink-muted">

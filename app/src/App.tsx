@@ -2,11 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Menu, Plus } from 'lucide-react'
 import { Sidebar, SidebarMovel } from './components/Sidebar'
 import { ProvedorFeedback } from './components/Feedback'
-import { ProvedorSessao, useSessao } from './state/Sessao'
+import { ProvedorSessao } from './state/Sessao'
 import { ProvedorInsights } from './state/Insights'
 import { ProvedorModais, useModais } from './state/Modais'
 import { nomeDaEmpresa, nomeDaPagina, useRota, type Rota } from './lib/rotas'
-import type { Perfil } from './data/types'
 import { NOME_DO_SISTEMA } from './data/constants'
 import { Cronograma } from './pages/Cronograma'
 import { Atividades } from './pages/Atividades'
@@ -75,7 +74,6 @@ function Estrutura() {
 
 function Cabecalho({ rota, onAbrirMenu }: { rota: Rota; onAbrirMenu: () => void }) {
   const { abrir } = useModais()
-  const { perfil, setPerfil } = useSessao()
   const tituloRef = useRef<HTMLHeadingElement>(null)
   const primeira = useRef(true)
 
@@ -110,21 +108,6 @@ function Cabecalho({ rota, onAbrirMenu }: { rota: Rota; onAbrirMenu: () => void 
           </h1>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          <label className="flex items-center gap-2 text-sm text-ink-soft">
-            Simular perfil
-            <select
-              className="field-control w-auto py-1.5"
-              value={perfil}
-              aria-describedby="aviso-perfil"
-              onChange={(e) => setPerfil(e.target.value as Perfil)}
-            >
-              <option>Carlos</option>
-              <option>Kélvia</option>
-            </select>
-          </label>
-          <span id="aviso-perfil" className="text-[11px] text-ink-muted">
-            Simulação: não é autenticação real
-          </span>
           {acao && (
             <button
               type="button"

@@ -1,5 +1,5 @@
 /**
- * Estado da sessão: perfil simulado, atividades e contas.
+ * Estado da sessão: usuário autenticado (ainda inexistente), atividades e contas.
  *
  * Como no HTML de referência, atividades e contas ficam só na memória desta aba
  * do navegador: recarregar a página volta às atividades demonstrativas. Os
@@ -8,6 +8,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import type { Atividade, Conta, EmpresaId, EventoHistorico, Perfil } from '../data/types'
 import { hoje } from '../lib/dates'
+import { obterUsuarioAutenticado } from './Autenticacao'
 
 export function gerarId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID()
@@ -26,8 +27,8 @@ export function atividadesDemonstrativas(dia: string = hoje()): Atividade[] {
 }
 
 interface Sessao {
-  perfil: Perfil
-  setPerfil: (p: Perfil) => void
+  /** Pessoa autenticada. `null` enquanto não houver login: nada é aprovado em nome de ninguém. */
+  usuario: Perfil | null
   atividades: Atividade[]
   criarAtividade: (a: Omit<Atividade, 'id'>) => Atividade
   atualizarAtividade: (id: string, mudar: (a: Atividade) => Atividade) => void
@@ -38,8 +39,15 @@ interface Sessao {
 
 const Contexto = createContext<Sessao | null>(null)
 
-export function ProvedorSessao({ children, inicial }: { children: ReactNode; inicial?: Atividade[] }) {
-  const [perfil, setPerfil] = useState<Perfil>('Carlos')
+export function ProvedorSessao({
+  children,
+  inicial,
+  usuario = obterUsuarioAutenticado(),
+}: {
+  children: ReactNode
+  inicial?: Atividade[]
+  usuario?: Perfil | null
+}) {
   const [atividades, setAtividades] = useState<Atividade[]>(() => inicial ?? atividadesDemonstrativas())
   const [contas, setContas] = useState<Conta[]>([])
 
@@ -65,8 +73,8 @@ export function ProvedorSessao({ children, inicial }: { children: ReactNode; ini
   }, [])
 
   const valor = useMemo(
-    () => ({ perfil, setPerfil, atividades, criarAtividade, atualizarAtividade, excluirAtividade, contas, criarConta }),
-    [perfil, atividades, criarAtividade, atualizarAtividade, excluirAtividade, contas, criarConta],
+    () => ({ usuario, atividades, criarAtividade, atualizarAtividade, excluirAtividade, contas, criarConta }),
+    [usuario, atividades, criarAtividade, atualizarAtividade, excluirAtividade, contas, criarConta],
   )
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>
 }

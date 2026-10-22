@@ -13,7 +13,7 @@ import { formatarCarimbo } from '../lib/dates'
 import { EditorMaterial, useRascunhoMaterial, VisualizarMaterial } from './Material'
 
 export function DetalheAtividade({ id, onFechar }: { id: string; onFechar: () => void }) {
-  const { atividades, perfil, atualizarAtividade, excluirAtividade } = useSessao()
+  const { atividades, usuario, atualizarAtividade, excluirAtividade } = useSessao()
   const feedback = useFeedback()
   const a = atividades.find((x) => x.id === id)
   const [orientacao, setOrientacao] = useState('')
@@ -30,7 +30,7 @@ export function DetalheAtividade({ id, onFechar }: { id: string; onFechar: () =>
 
   function executar(acao: AcaoAprovacao) {
     try {
-      const nova = aplicarAcao(a!, acao, perfil, orientacao)
+      const nova = aplicarAcao(a!, acao, usuario, orientacao)
       atualizarAtividade(a!.id, () => nova)
       setOrientacao('')
       setErroAcao('')
@@ -51,8 +51,8 @@ export function DetalheAtividade({ id, onFechar }: { id: string; onFechar: () =>
     onFechar()
   }
 
-  const decidir = podeDecidir(perfil, a)
-  const enviar = podeEnviar(perfil, a)
+  const decidir = podeDecidir(usuario, a)
+  const enviar = podeEnviar(usuario, a)
 
   return (
     <Dialog
@@ -140,8 +140,14 @@ export function DetalheAtividade({ id, onFechar }: { id: string; onFechar: () =>
               {a.status === 'Aprovado'
                 ? 'Versão aprovada por Kélvia. Pronta para agendamento.'
                 : a.status === 'Aguardando aprovação'
-                  ? 'Aguardando decisão de Kélvia. Selecione o perfil dela em “Simular perfil” para revisar.'
-                  : 'Em produção com Carlos. Selecione o perfil de Carlos para enviar à aprovação.'}
+                  ? 'Aguardando decisão de Kélvia. Somente ela aprova ou solicita ajustes.'
+                  : 'Em produção. Somente Carlos envia o material para aprovação.'}
+              {!usuario && (
+                <span className="mt-1 block">
+                  Esta versão ainda não tem login, então ninguém é identificado e o envio e a aprovação ficam
+                  indisponíveis no sistema.
+                </span>
+              )}
             </Nota>
           )}
         </section>
@@ -178,7 +184,7 @@ export function DetalheAtividade({ id, onFechar }: { id: string; onFechar: () =>
 }
 
 function EditorAgendamento({ id }: { id: string }) {
-  const { atividades, perfil, atualizarAtividade } = useSessao()
+  const { atividades, usuario, atualizarAtividade } = useSessao()
   const feedback = useFeedback()
   const a = atividades.find((x) => x.id === id)!
   const [data, setData] = useState(a.dataPostagem)
@@ -198,7 +204,7 @@ function EditorAgendamento({ id }: { id: string }) {
       ...x,
       dataPostagem: data,
       horaPostagem: hora,
-      historico: [...x.historico, registrar(perfil, `${perfil} alterou a previsão de ${antes} para ${depois}.`)],
+      historico: [...x.historico, registrar(usuario ?? 'Sem identificação', `Previsão alterada de ${antes} para ${depois}.`)],
     }))
     feedback.sucesso('Data e hora atualizadas no Cronograma.')
   }
@@ -225,7 +231,7 @@ function EditorAgendamento({ id }: { id: string }) {
 }
 
 function AtualizarMaterial({ id, onConcluir }: { id: string; onConcluir: () => void }) {
-  const { atividades, perfil, atualizarAtividade } = useSessao()
+  const { atividades, usuario, atualizarAtividade } = useSessao()
   const feedback = useFeedback()
   const a = atividades.find((x) => x.id === id)!
   const material = useRascunhoMaterial(a.material)
@@ -241,7 +247,7 @@ function AtualizarMaterial({ id, onConcluir }: { id: string; onConcluir: () => v
       atualizarAtividade(id, (x) => ({
         ...x,
         material: m,
-        historico: [...x.historico, registrar(perfil, 'Carlos atualizou o material da entrega.')],
+        historico: [...x.historico, registrar(usuario!, 'Carlos atualizou o material da entrega.')],
       }))
       feedback.sucesso('Material atualizado nesta sessão.')
       onConcluir()

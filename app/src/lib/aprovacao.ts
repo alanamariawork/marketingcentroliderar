@@ -1,16 +1,17 @@
 /**
  * Fluxo de aprovação: Carlos produz e envia; somente Kélvia aprova ou pede
- * ajustes. Jordana pode ser responsável, mas não aprova. O perfil é simulado.
+ * ajustes. Jordana pode ser responsável, mas não aprova. Sem usuário autenticado
+ * (`null`), nenhuma ação de envio ou decisão é permitida.
  */
 import type { Atividade, Perfil } from '../data/types'
 
 export type AcaoAprovacao = 'enviar' | 'aprovar' | 'ajustes'
 
-export function podeEnviar(perfil: Perfil, a: Pick<Atividade, 'status'>): boolean {
+export function podeEnviar(perfil: Perfil | null, a: Pick<Atividade, 'status'>): boolean {
   return perfil === 'Carlos' && (a.status === 'Em produção' || a.status === 'Ajustes solicitados')
 }
 
-export function podeDecidir(perfil: Perfil, a: Pick<Atividade, 'status'>): boolean {
+export function podeDecidir(perfil: Perfil | null, a: Pick<Atividade, 'status'>): boolean {
   return perfil === 'Kélvia' && a.status === 'Aguardando aprovação'
 }
 
@@ -18,7 +19,7 @@ export function podeDecidir(perfil: Perfil, a: Pick<Atividade, 'status'>): boole
 export function aplicarAcao(
   a: Atividade,
   acao: AcaoAprovacao,
-  perfil: Perfil,
+  perfil: Perfil | null,
   orientacao = '',
   quando: string = new Date().toISOString(),
 ): Atividade {
@@ -29,7 +30,7 @@ export function aplicarAcao(
       ...a,
       versao,
       status: 'Aguardando aprovação',
-      historico: [...a.historico, { quando, autor: perfil, texto: `Carlos enviou a versão ${versao} para aprovação.` }],
+      historico: [...a.historico, { quando, autor: perfil!, texto: `Carlos enviou a versão ${versao} para aprovação.` }],
     }
   }
   if (!podeDecidir(perfil, a)) throw new Error('Somente Kélvia concede a aprovação final ou solicita ajustes.')
@@ -37,7 +38,7 @@ export function aplicarAcao(
     return {
       ...a,
       status: 'Aprovado',
-      historico: [...a.historico, { quando, autor: perfil, texto: `Kélvia aprovou a versão ${a.versao}.` }],
+      historico: [...a.historico, { quando, autor: perfil!, texto: `Kélvia aprovou a versão ${a.versao}.` }],
     }
   }
   if (!orientacao.trim()) throw new Error('Descreva os ajustes antes de enviar.')
@@ -46,7 +47,7 @@ export function aplicarAcao(
     status: 'Ajustes solicitados',
     historico: [
       ...a.historico,
-      { quando, autor: perfil, texto: `Kélvia solicitou ajustes na versão ${a.versao}: ${orientacao.trim()}` },
+      { quando, autor: perfil!, texto: `Kélvia solicitou ajustes na versão ${a.versao}: ${orientacao.trim()}` },
     ],
   }
 }
