@@ -1,0 +1,116 @@
+@import 'tailwindcss';
+
+/*
+ * TEMA — BASE NEUTRA PROVISÓRIA
+ *
+ * Os arquivos oficiais de identidade visual do Centro Liderar (logotipo, cores,
+ * tipografia, manual) não estavam no repositório nem na pasta do projeto. Esta
+ * base é neutra e provisória: não reproduz as cores do HTML de demonstração nem
+ * a identidade da Mulher Que Age que existe na branch principal.
+ *
+ * Toda a interface usa estas variáveis. Para aplicar a identidade oficial,
+ * troque somente os valores abaixo (e o nome/logotipo em components/Marca.tsx).
+ */
+@theme {
+  /* Tipografia (fontes do sistema até a tipografia oficial ser definida) */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: var(--font-sans);
+
+  /* Cor principal (grafite azulado, provisória) */
+  --color-brand-50: #eff2f5;
+  --color-brand-100: #dfe5ec;
+  --color-brand-500: #4b5b6d;
+  --color-brand-600: #37475a;
+  --color-brand-700: #273647;
+  --color-brand-contrast: #ffffff;
+
+  /* Superfícies e texto (contraste AA sobre branco e sobre o fundo) */
+  --color-canvas: #f6f5f2;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1efeb;
+  --color-line: #e5e2dc;
+  --color-line-strong: #cdc8bf;
+  --color-ink: #1d2126;
+  --color-ink-soft: #383e45;
+  --color-ink-muted: #5c626a;
+  --color-focus: #2d5f8f;
+
+  /* Menu lateral */
+  --color-sidebar: #1f252c;
+  --color-sidebar-ink: #e8eaed;
+  --color-sidebar-muted: #a7aeb7;
+  --color-sidebar-active: #313a45;
+
+  /* Situação das entregas */
+  --color-producao: #3d5a80;
+  --color-producao-soft: #edf2f8;
+  --color-aprovacao: #8a5a00;
+  --color-aprovacao-soft: #fdf5e6;
+  --color-aprovado: #2e6b45;
+  --color-aprovado-soft: #ebf5ee;
+  --color-ajustes: #a03a2c;
+  --color-ajustes-soft: #fbefed;
+
+  /* Feedback */
+  --color-success: #2e6b45;
+  --color-success-soft: #ebf5ee;
+  --color-danger: #a8302a;
+  --color-danger-soft: #fbefed;
+  --color-warning: #7d5300;
+  --color-warning-soft: #fdf5e6;
+
+  /* Gráficos e barras */
+  --color-chart: #4b5b6d;
+  --color-chart-track: #ebe8e2;
+  --color-chart-ref: #b07a1a;
+
+  /* Raios e sombras suaves */
+  --radius-card: 0.75rem;
+  --radius-control: 0.5rem;
+  --shadow-card: 0 1px 2px rgb(29 33 38 / 0.04), 0 2px 8px rgb(29 33 38 / 0.03);
+  --shadow-overlay: 0 16px 40px rgb(29 33 38 / 0.18);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Foco visível e consistente para navegação por teclado */
+:where(a, button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@utility field-control {
+  @apply w-full rounded-[var(--radius-control)] border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-muted/70 disabled:bg-surface-muted aria-[invalid=true]:border-danger;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+}
+@utility btn-primary {
+  @apply btn bg-brand-700 text-brand-contrast hover:bg-brand-600;
+}
+@utility btn-secondary {
+  @apply btn border border-line-strong bg-surface text-ink-soft hover:bg-surface-muted;
+}
+@utility btn-ghost {
+  @apply btn text-ink-soft hover:bg-surface-muted;
+}
+@utility btn-danger {
+  @apply btn bg-danger text-white hover:opacity-90;
+}
+@utility card {
+  @apply rounded-[var(--radius-card)] border border-line bg-surface shadow-[var(--shadow-card)];
+}
+@utility eyebrow {
+  @apply text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase;
+}
