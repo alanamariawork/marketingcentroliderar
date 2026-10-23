@@ -75,17 +75,6 @@ export function Sidebar({ rota, aoNavegar, onAdicionarConta }: PropsSidebar) {
           Adicionar conta
         </button>
       </nav>
-
-      <div className="space-y-1 border-t border-white/10 px-5 py-4 text-[11px] leading-snug text-sidebar-muted">
-        <p className="text-[10px] font-semibold tracking-[0.12em] uppercase">Aprovação centralizada</p>
-        <p className="flex items-center gap-2 text-sm text-sidebar-ink">
-          <span className="inline-flex size-6 items-center justify-center rounded-full bg-white/15 text-[11px] font-semibold" aria-hidden>
-            K
-          </span>
-          Kélvia · aprovação final
-        </p>
-        <p>Demonstração local · sem integrações externas</p>
-      </div>
     </div>
   )
 }
