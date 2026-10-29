@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { carregarInsights, carregarInsightsImportados, ErroDeArmazenamento, salvarInsights } from '../data/armazenamento'
 import type { RegistroInsight } from '../data/types'
 import { FILTROS_VAZIOS, type FiltrosInsight } from '../lib/insights'
+import { aplicarColeta } from '../lib/instagram'
 
 interface EstadoInsights {
   carregando: boolean
@@ -15,6 +16,8 @@ interface EstadoInsights {
   /** Cria ou atualiza; só resolve depois que a gravação terminou. */
   salvar: (registro: RegistroInsight) => Promise<void>
   excluir: (id: string) => Promise<void>
+  /** Junta os registros coletados pelo agente (sem duplicar posts) e grava. */
+  aplicarColetados: (coletados: RegistroInsight[]) => Promise<{ novos: number; atualizados: number }>
   filtrosDe: (empresa: string) => FiltrosInsight
   setFiltros: (empresa: string, f: FiltrosInsight) => void
   objetivo: string
@@ -80,6 +83,14 @@ export function ProvedorInsights({ children }: { children: ReactNode }) {
     [registros, gravar],
   )
   const excluir = useCallback((id: string) => gravar(registros.filter((r) => r.id !== id)), [registros, gravar])
+  const aplicarColetados = useCallback(
+    async (coletados: RegistroInsight[]) => {
+      const { registros: proxima, novos, atualizados } = aplicarColeta(registros, coletados)
+      if (novos || atualizados) await gravar(proxima)
+      return { novos, atualizados }
+    },
+    [registros, gravar],
+  )
 
   const filtrosDe = useCallback((empresa: string) => filtros[empresa] ?? FILTROS_VAZIOS, [filtros])
   const setFiltros = useCallback(
@@ -98,12 +109,13 @@ export function ProvedorInsights({ children }: { children: ReactNode }) {
       recarregar: () => setVersao((v) => v + 1),
       salvar,
       excluir,
+      aplicarColetados,
       filtrosDe,
       setFiltros,
       objetivo,
       setObjetivo,
     }),
-    [carregando, erroCarga, aviso, gravacaoBloqueada, registros, totalImportados, salvar, excluir, filtrosDe, setFiltros, objetivo],
+    [carregando, erroCarga, aviso, gravacaoBloqueada, registros, totalImportados, salvar, excluir, aplicarColetados, filtrosDe, setFiltros, objetivo],
   )
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>
 }

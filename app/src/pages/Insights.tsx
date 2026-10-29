@@ -11,6 +11,7 @@ import { Carregando, EstadoErro, EstadoVazio } from '../components/Estados'
 import { FiltrosInsights } from '../components/FiltrosInsights'
 import { Paginacao, TabelaInsights } from '../components/TabelaInsights'
 import { Nota } from '../components/Selos'
+import { BotaoAgente } from '../components/BotaoAgente'
 
 const POR_PAGINA = 50
 
@@ -34,7 +35,7 @@ export function Insights({ empresaId }: { empresaId: EmpresaId }) {
 
   const novo = () => abrir({ tipo: 'insight', empresaId })
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-20">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">Resultados por publicação</h2>
@@ -108,6 +109,7 @@ export function Insights({ empresaId }: { empresaId: EmpresaId }) {
       <p className="text-xs text-ink-muted">
         Dados salvos neste navegador. Campo vazio significa “não informado”; zero é um resultado válido.
       </p>
+      <BotaoAgente />
     </div>
   )
 }

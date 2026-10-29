@@ -221,3 +221,34 @@ testes cobrem o caso de falha (Drive bloqueado). Para confirmar, abra o Drive pe
 - Normalizar categorias com espaços extras vindas das planilhas (“Pro perfil ”, “Impulsionando ”).
 - Exportar Insights e Dashboard em planilha.
 - Atualização periódica do catálogo do Drive por integração autorizada.
+
+## Agente de atualização dos Insights (29/10/2026)
+
+**Pedido:** todos os dias às 8h, em cada conta de Instagram do marketing, encontrar o post publicado há 7 dias,
+pegar os dados de Insights e adicioná-los ao sistema; e um botão flutuante animado na página Insights para rodar
+a atualização quando precisar.
+
+**Como funciona (decisão):** a coleta usa a API oficial do Instagram (Graph API), não login automatizado com
+senha. Login automatizado viola os termos do Instagram, cai em verificação em duas etapas e pode bloquear a conta.
+
+**Feito nesta etapa (frontend e regras):**
+
+- `src/lib/instagram.ts`: contas coletadas (Centro Liderar, MQA, Diamante Business, Jaciara Mendes), dia alvo
+  (7 dias atrás, fuso de Fortaleza), métricas pedidas por tipo de post, conversão para os campos do sistema e
+  junção sem duplicar. O mesmo post é reconhecido por `/p/` ou `/reel/`; a API atualiza só as métricas, nunca
+  apaga um valor preenchido à mão e não mexe em funil, categoria, descrição ou observações.
+- Campos que a API não entrega por publicação ficam vazios: alcance de seguidores e não seguidores, cliques
+  no link, republicações e repetições.
+- `src/components/BotaoAgente.tsx`: botão flutuante animado (flutua e pulsa; para ao passar o mouse e respeita
+  “reduzir movimento”), só na página Insights. Abre o painel do agente com o dia buscado, a rotina das 8h, as
+  contas e o botão “Atualizar agora”.
+- `src/data/agenteInsights.ts`: chama o servidor do agente em `VITE_AGENTE_INSIGHTS_URL`. Sem essa variável, o
+  painel avisa que o agente não está ligado e nenhuma coleta é feita.
+
+**Pendente:** o servidor (função que consulta a API com o token guardado no servidor, nunca no navegador), a
+rotina diária às 8h e o banco onde os registros ficam salvos (hoje os Insights ficam no navegador, que uma
+rotina não consegue alcançar). Depende da escolha de hospedagem.
+
+**O que precisa ser fornecido:** contas de Instagram profissionais (Empresa ou Criador) ligadas a uma Página do
+Facebook; um app da Meta com as permissões `instagram_basic`, `instagram_manage_insights` e
+`pages_read_engagement`; e um token de longa duração gerado por quem administra as Páginas.

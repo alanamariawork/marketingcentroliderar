@@ -114,3 +114,14 @@ body {
 @utility eyebrow {
   @apply text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase;
 }
+
+/* Botão flutuante do agente de Insights: sobe e desce devagar. */
+@keyframes flutuar {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
