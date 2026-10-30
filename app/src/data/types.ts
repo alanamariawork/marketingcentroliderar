@@ -59,6 +59,11 @@ export interface Atividade {
   historico: EventoHistorico[]
   /** Atividades de exemplo, diferentes dos dados reais importados de Insights. */
   demonstrativa: boolean
+  /**
+   * Preenchido (só na leitura) quando um criativo está vinculado: status, versão
+   * e decisão passam a vir do criativo, para as duas telas nunca divergirem.
+   */
+  criativoId?: string
 }
 
 /** Uma conta é um perfil ou canal de comunicação, não um usuário. */
@@ -128,6 +133,84 @@ export interface ItemDrive {
   type: TipoItemDrive
   /** MIME type do Drive, quando o catálogo trouxer esse dado (prioritário). */
   mimeType?: string
+  /** Metadados reais do Drive (RFC 3339), quando o catálogo trouxer: criação e última modificação. */
+  createdTime?: string
+  modifiedTime?: string
 }
 
 export type TipoMidia = 'Foto' | 'Vídeo'
+
+/* ---------- Criativos (Drive › Criativos › Produção) ---------- */
+
+export type StatusCriativo = 'Em produção' | 'Em revisão' | 'Ajustes solicitados' | 'Aprovado'
+
+/** Evento ou campanha: agrupa criativos dentro de Produção. Organização do sistema, não do Google Drive. */
+export interface EventoCampanha {
+  id: string
+  empresaId: EmpresaId
+  nome: string
+  tipo: 'Evento' | 'Campanha'
+  /** AAAA-MM-DD; vazio = sem data definida. */
+  data: string
+  observacoes: string
+  criadoEm: string
+}
+
+/**
+ * Peça do criativo (uma imagem ou um vídeo). `arquivo`: anexada neste
+ * navegador (o conteúdo fica no IndexedDB, nunca no localStorage, e não é
+ * enviado ao Google Drive). `drive`: link de um ARQUIVO do Drive.
+ */
+export interface PecaCriativo {
+  id: string
+  origem: 'arquivo' | 'drive'
+  nome: string
+  midia: TipoMidia
+  /** origem `arquivo`: chave do conteúdo no IndexedDB. */
+  arquivoId?: string
+  tamanho?: number
+  mime?: string
+  /** origem `drive`: link do arquivo no Google Drive. */
+  url?: string
+}
+
+/** Versão = o material efetivamente revisado. A aprovação vale para uma versão. */
+export interface VersaoCriativo {
+  numero: number
+  criadaEm: string
+  autor: Perfil | 'Sem identificação'
+  pecas: PecaCriativo[]
+}
+
+export type DecisaoCriativo = 'Enviado para revisão' | 'Aprovado' | 'Ajustes solicitados'
+
+export interface RegistroDecisao {
+  versao: number
+  autor: Perfil
+  quando: string
+  decisao: DecisaoCriativo
+  comentario: string
+}
+
+export interface Criativo {
+  id: string
+  empresaId: EmpresaId
+  nome: string
+  /** Vazio = "Sem evento vinculado". */
+  eventoId: string
+  /** Atividade vinculada (opcional). A decisão fica no criativo e vale para as duas telas. */
+  atividadeId: string
+  responsavel: Responsavel
+  formato: FormatoPostagem
+  /** Link editável do Canva: só referência para edição, sem sincronização. */
+  canva: string
+  /** Link de um arquivo ou de uma pasta no Drive. */
+  drive: string
+  observacoes: string
+  versoes: VersaoCriativo[]
+  decisoes: RegistroDecisao[]
+  /** Alterações de cadastro (responsável, evento, vínculos…), que não mudam a versão. */
+  historico: EventoHistorico[]
+  criadoEm: string
+  atualizadoEm: string
+}

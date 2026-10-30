@@ -18,6 +18,7 @@ import {
   type TemaDrive,
 } from '../data/constants'
 import type { ItemDrive, TipoMidia } from '../data/types'
+import { diaDoCarimbo } from './dates'
 
 export const normalizar = (v: string) =>
   String(v || '')
@@ -94,6 +95,8 @@ export interface IndiceDrive {
   subpastas: Map<string, ItemIndexado[]>
   /** Itens do catálogo que ficaram fora da biblioteca (documentos, atalhos, formatos sem evidência). */
   ignorados: number
+  /** Itens (fotos, vídeos e pastas exibidos) com cada data do Drive no catálogo. */
+  datados: Record<BaseData, number>
   capaDe: (pasta: string) => CapaPasta
 }
 
@@ -165,7 +168,12 @@ export function indexar(catalogo: ItemDrive[]): IndiceDrive {
     return capa
   }
 
-  return { itens: [...pastasComMidia, ...midias], contagens, subpastas, ignorados, capaDe }
+  const itens = [...pastasComMidia, ...midias]
+  const datados = {
+    criacao: itens.filter((x) => diaDoCarimbo(x.createdTime)).length,
+    modificacao: itens.filter((x) => diaDoCarimbo(x.modifiedTime)).length,
+  }
+  return { itens, contagens, subpastas, ignorados, datados, capaDe }
 }
 
 export function termosDaBusca(texto: string): string[] {
@@ -176,36 +184,149 @@ export function termosDaBusca(texto: string): string[] {
 
 export type FiltroTipoDrive = TipoMidia | 'Pasta' | ''
 
+/* ---------- Datas do Drive ---------- */
+
+/** Qual data do Drive usar: criação ou última modificação (não é a data de gravação nem do evento). */
+export type BaseData = 'criacao' | 'modificacao'
+export const ROTULO_BASE_DATA: Record<BaseData, string> = {
+  criacao: 'Criação no Drive',
+  modificacao: 'Última modificação no Drive',
+}
+
+/** Ano e intervalo são modos alternativos: um exclui o outro. */
+export type ModoData = 'todas' | 'ano' | 'intervalo' | 'sem-data'
+
+export interface FiltroData {
+  base: BaseData
+  modo: ModoData
+  ano: string
+  /** AAAA-MM-DD (fuso de Fortaleza); vazio = sem limite. */
+  de: string
+  ate: string
+}
+
+export const FILTRO_DATA_VAZIO: FiltroData = { base: 'modificacao', modo: 'todas', ano: '', de: '', ate: '' }
+
+/** Carimbo RFC 3339 da data escolhida, exatamente como veio do Drive. */
+export const carimboDe = (x: Pick<ItemDrive, 'createdTime' | 'modifiedTime'>, base: BaseData) =>
+  (base === 'criacao' ? x.createdTime : x.modifiedTime) ?? ''
+
+/** Dia da data escolhida no fuso de Fortaleza; vazio = data não informada. Nunca deduz pelo nome do arquivo. */
+export const diaDe = (x: Pick<ItemDrive, 'createdTime' | 'modifiedTime'>, base: BaseData) => diaDoCarimbo(carimboDe(x, base))
+
+export function passaNaData(x: Pick<ItemDrive, 'createdTime' | 'modifiedTime'>, f: FiltroData): boolean {
+  if (f.modo === 'todas') return true
+  const dia = diaDe(x, f.base)
+  if (f.modo === 'sem-data') return !dia
+  if (!dia) return false
+  if (f.modo === 'ano') return !f.ano || dia.startsWith(f.ano + '-')
+  return (!f.de || dia >= f.de) && (!f.ate || dia <= f.ate)
+}
+
+/** Anos presentes no catálogo para a data escolhida, do mais recente ao mais antigo. */
+export function anosDisponiveis(itens: Pick<ItemDrive, 'createdTime' | 'modifiedTime'>[], base: BaseData): string[] {
+  const anos = new Set<string>()
+  for (const x of itens) {
+    const d = diaDe(x, base)
+    if (d) anos.add(d.slice(0, 4))
+  }
+  return [...anos].sort().reverse()
+}
+
+/* ---------- Ordenação ---------- */
+
+export type OrdemDrive = 'relevancia' | 'nome-asc' | 'nome-desc' | 'mod-desc' | 'mod-asc' | 'cri-desc' | 'cri-asc'
+
+export const ORDENS_DRIVE: { id: OrdemDrive; rotulo: string }[] = [
+  { id: 'relevancia', rotulo: 'Relevância da pesquisa' },
+  { id: 'nome-asc', rotulo: 'Nome: A–Z' },
+  { id: 'nome-desc', rotulo: 'Nome: Z–A' },
+  { id: 'mod-desc', rotulo: 'Última modificação: mais recentes primeiro' },
+  { id: 'mod-asc', rotulo: 'Última modificação: mais antigos primeiro' },
+  { id: 'cri-desc', rotulo: 'Criação: mais recentes primeiro' },
+  { id: 'cri-asc', rotulo: 'Criação: mais antigos primeiro' },
+]
+
+/** Identificador do item no Drive (arquivo ou pasta), para desempate estável. */
+export function idDoItem(x: Pick<ItemDrive, 'url'>): string {
+  return /\/(?:file\/d|folders)\/([\w-]+)/.exec(x.url)?.[1] ?? new URL(x.url, 'https://x').searchParams.get('id') ?? x.url
+}
+
+const compararNome = (a: ItemDrive, b: ItemDrive) => a.name.localeCompare(b.name, 'pt-BR', { numeric: true })
+const desempate = (a: ItemDrive, b: ItemDrive) => {
+  const ia = idDoItem(a)
+  const ib = idDoItem(b)
+  return compararNome(a, b) || (ia < ib ? -1 : ia > ib ? 1 : 0)
+}
+
+/**
+ * Ordena TODOS os resultados (antes da paginação). Pastas vêm antes dos
+ * arquivos; nas datas, cada pasta usa a própria data. Sem data vai para o fim
+ * em qualquer direção. Desempate por nome e ID.
+ */
+export function ordenar(itens: ItemIndexado[], ordem: OrdemDrive, pontos?: (x: ItemIndexado) => number): ItemIndexado[] {
+  const base: BaseData | null = ordem.startsWith('mod') ? 'modificacao' : ordem.startsWith('cri') ? 'criacao' : null
+  const tempos = new Map<ItemIndexado, number>()
+  if (base) {
+    for (const x of itens) {
+      const t = Date.parse(carimboDe(x, base))
+      tempos.set(x, Number.isNaN(t) ? NaN : t)
+    }
+  }
+  const sentido = ordem.endsWith('desc') ? -1 : 1
+  return [...itens].sort((a, b) => {
+    if (a.type === 'Pasta' && b.type !== 'Pasta') return -1
+    if (b.type === 'Pasta' && a.type !== 'Pasta') return 1
+    if (base) {
+      const ta = tempos.get(a)!
+      const tb = tempos.get(b)!
+      const sa = Number.isNaN(ta)
+      const sb = Number.isNaN(tb)
+      if (sa !== sb) return sa ? 1 : -1
+      if (!sa && ta !== tb) return (ta - tb) * sentido
+      return desempate(a, b)
+    }
+    if (ordem === 'nome-desc') return -desempate(a, b)
+    if (ordem === 'relevancia' && pontos) return pontos(b) - pontos(a) || desempate(a, b)
+    return desempate(a, b)
+  })
+}
+
 export interface ConsultaDrive {
   texto: string
   tipo: FiltroTipoDrive
   pasta: string
   /** true = inclui termos relacionados; false = só as palavras digitadas. */
   relacionados: boolean
+  data?: FiltroData
+  ordem?: OrdemDrive
 }
 
+/** Com palavras-chave ou filtro de data, a pesquisa cobre a pasta e todas as subpastas. */
+export const pesquisaNaArvore = (c: Pick<ConsultaDrive, 'texto' | 'data'>) =>
+  termosDaBusca(c.texto).length > 0 || (!!c.data && c.data.modo !== 'todas')
+
 /**
- * Sem palavras-chave: mostra o conteúdo direto da pasta. Com palavras-chave:
- * pesquisa a pasta e todas as subpastas. Pastas vêm primeiro; depois, os itens
- * com o termo no nome; desempate pelo nome.
+ * Sem palavras-chave nem filtro de data: mostra o conteúdo direto da pasta.
+ * Caso contrário, pesquisa a pasta e todas as subpastas. A ordenação vale
+ * para o conjunto inteiro de resultados.
  */
 export function pesquisar(indice: IndiceDrive, c: ConsultaDrive): ItemIndexado[] {
   const palavrasBusca = termosDaBusca(c.texto)
   const prefixo = c.pasta + ' / '
+  const arvore = pesquisaNaArvore(c)
   const variantes = palavrasBusca.map((w) => (c.relacionados ? (DRIVE_SINONIMOS.find((g) => g.includes(w)) ?? [w]) : [w]))
   const encontrados = indice.itens.filter(
     (x) =>
       (!c.tipo || (c.tipo === 'Pasta' ? x.type === 'Pasta' : x.midia === c.tipo)) &&
       x.path.startsWith(prefixo) &&
-      (palavrasBusca.length ? variantes.every((vs) => vs.some((v) => x.busca.includes(v))) : x.pai === c.pasta),
+      (arvore ? true : x.pai === c.pasta) &&
+      variantes.every((vs) => vs.some((v) => x.busca.includes(v))) &&
+      (!c.data || passaNaData(x, c.data)),
   )
   const pontos = (x: ItemIndexado) =>
     palavrasBusca.reduce((n, w) => n + (x.nomeBusca.includes(w) ? 2 : x.busca.includes(w) ? 1 : 0), 0)
-  return encontrados.sort((a, b) => {
-    if (a.type === 'Pasta' && b.type !== 'Pasta') return -1
-    if (b.type === 'Pasta' && a.type !== 'Pasta') return 1
-    return pontos(b) - pontos(a) || a.name.localeCompare(b.name, 'pt-BR', { numeric: true })
-  })
+  return ordenar(encontrados, c.ordem ?? 'relevancia', pontos)
 }
 
 /**

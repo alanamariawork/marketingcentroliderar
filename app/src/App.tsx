@@ -3,6 +3,7 @@ import { Menu, Plus } from 'lucide-react'
 import { Sidebar, SidebarMovel } from './components/Sidebar'
 import { ProvedorFeedback } from './components/Feedback'
 import { ProvedorSessao } from './state/Sessao'
+import { ProvedorCriativos } from './state/Criativos'
 import { ProvedorInsights } from './state/Insights'
 import { ProvedorModais, useModais } from './state/Modais'
 import { nomeDaEmpresa, nomeDaPagina, useRota, type Rota } from './lib/rotas'
@@ -16,13 +17,15 @@ import { Dashboard } from './pages/Dashboard'
 export default function App() {
   return (
     <ProvedorFeedback>
-      <ProvedorSessao>
-        <ProvedorInsights>
-          <ProvedorModais>
-            <Estrutura />
-          </ProvedorModais>
-        </ProvedorInsights>
-      </ProvedorSessao>
+      <ProvedorCriativos>
+        <ProvedorSessao>
+          <ProvedorInsights>
+            <ProvedorModais>
+              <Estrutura />
+            </ProvedorModais>
+          </ProvedorInsights>
+        </ProvedorSessao>
+      </ProvedorCriativos>
     </ProvedorFeedback>
   )
 }

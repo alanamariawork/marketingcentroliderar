@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Building2,
+  CalendarDays,
   Camera,
   ExternalLink,
   Film,
@@ -30,20 +31,32 @@ import {
 import type { EmpresaId } from '../data/types'
 import { carregarCatalogoDrive } from '../data/armazenamento'
 import {
+  anosDisponiveis,
+  diaDe,
+  FILTRO_DATA_VAZIO,
   idDoArquivo,
   indexar,
+  ORDENS_DRIVE,
+  pesquisaNaArvore,
   pesquisar,
-  termosDaBusca,
+  ROTULO_BASE_DATA,
   urlMiniatura,
   urlPrevia,
+  type BaseData,
+  type FiltroData,
   type FiltroTipoDrive,
   type IndiceDrive,
   type ItemIndexado,
+  type ModoData,
+  type OrdemDrive,
 } from '../lib/drive'
+import { formatarData } from '../lib/dates'
+import { Criativos } from './Criativos'
+import { CapaGrafica, Miniatura } from '../components/MiniaturaDrive'
 import { cx } from '../lib/format'
 import { Carregando, EstadoErro, EstadoVazio } from '../components/Estados'
 import { Dialog } from '../components/Dialog'
-import { Nota } from '../components/Selos'
+import { Etiqueta, Nota } from '../components/Selos'
 import { Paginacao } from '../components/TabelaInsights'
 
 let indiceEmCache: IndiceDrive | null = null
@@ -80,7 +93,55 @@ export function Drive({ empresaId }: { empresaId: EmpresaId }) {
       </EstadoVazio>
     )
   }
-  return <BibliotecaLiderar />
+  return <AbasDrive />
+}
+
+type Aba = 'acervo' | 'criativos'
+const ABAS: { id: Aba; rotulo: string; descricao: string }[] = [
+  { id: 'acervo', rotulo: 'Acervo', descricao: 'Fotos e vídeos do Google Drive' },
+  { id: 'criativos', rotulo: 'Criativos', descricao: 'Artes e vídeos produzidos' },
+]
+
+function AbasDrive() {
+  const [aba, setAba] = useState<Aba>('acervo')
+  const refs = useRef<Record<Aba, HTMLButtonElement | null>>({ acervo: null, criativos: null })
+  function teclar(e: React.KeyboardEvent) {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
+    const proxima: Aba = aba === 'acervo' ? 'criativos' : 'acervo'
+    setAba(proxima)
+    refs.current[proxima]?.focus()
+  }
+  return (
+    <div className="space-y-5">
+      <div role="tablist" aria-label="Áreas do Drive" className="flex gap-1 border-b border-line" onKeyDown={teclar}>
+        {ABAS.map((x) => (
+          <button
+            key={x.id}
+            ref={(el) => {
+              refs.current[x.id] = el
+            }}
+            type="button"
+            role="tab"
+            id={`aba-${x.id}`}
+            aria-selected={aba === x.id}
+            aria-controls={`painel-${x.id}`}
+            tabIndex={aba === x.id ? 0 : -1}
+            onClick={() => setAba(x.id)}
+            className={cx(
+              '-mb-px border-b-2 px-4 py-2.5 text-left text-sm',
+              aba === x.id ? 'border-brand-600 font-semibold text-ink' : 'border-transparent text-ink-muted hover:text-ink',
+            )}
+          >
+            {x.rotulo}
+            <span className="hidden text-xs font-normal text-ink-muted sm:block">{x.descricao}</span>
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel" id={`painel-${aba}`} aria-labelledby={`aba-${aba}`}>
+        {aba === 'acervo' ? <BibliotecaLiderar /> : <Criativos />}
+      </div>
+    </div>
+  )
 }
 
 function BibliotecaLiderar() {
@@ -90,6 +151,8 @@ function BibliotecaLiderar() {
   const [busca, setBusca] = useState('')
   const [tipo, setTipo] = useState<FiltroTipoDrive>('')
   const [relacionados, setRelacionados] = useState(true)
+  const [data, setData] = useState<FiltroData>(FILTRO_DATA_VAZIO)
+  const [ordem, setOrdem] = useState<OrdemDrive>('relevancia')
   const [inicio, setInicio] = useState(0)
   const [previa, setPrevia] = useState<ItemIndexado | null>(null)
   const topo = useRef<HTMLDivElement>(null)
@@ -99,12 +162,13 @@ function BibliotecaLiderar() {
     const t = setTimeout(() => setBusca(texto), 180)
     return () => clearTimeout(t)
   }, [texto])
-  useEffect(() => setInicio(0), [busca, tipo, relacionados, pasta])
+  useEffect(() => setInicio(0), [busca, tipo, relacionados, pasta, data, ordem])
 
   const resultados = useMemo(
-    () => (indice ? pesquisar(indice, { texto: busca, tipo, pasta, relacionados }) : []),
-    [indice, busca, tipo, pasta, relacionados],
+    () => (indice ? pesquisar(indice, { texto: busca, tipo, pasta, relacionados, data, ordem }) : []),
+    [indice, busca, tipo, pasta, relacionados, data, ordem],
   )
+  const anos = useMemo(() => (indice ? anosDisponiveis(indice.itens, data.base) : []), [indice, data.base])
 
   if (erro) return <EstadoErro mensagem={erro} onTentar={tentarDeNovo} />
   if (!indice) return <Carregando texto="Carregando o catálogo do Drive (68.592 itens)…" />
@@ -118,7 +182,9 @@ function BibliotecaLiderar() {
     topo.current?.scrollIntoView({ block: 'start' })
   }
   const visiveis = resultados.slice(inicio, inicio + DRIVE_ITENS_POR_PAGINA)
-  const comTermos = termosDaBusca(busca).length > 0
+  const naArvore = pesquisaNaArvore({ texto: busca, data })
+  const semDatas = indice.datados[data.base] === 0
+  const mudarData = (m: Partial<FiltroData>) => setData((d) => ({ ...d, ...m }))
 
   return (
     <div className="space-y-5" ref={topo}>
@@ -199,6 +265,84 @@ function BibliotecaLiderar() {
           </select>
         </label>
       </div>
+      <fieldset className="card grid gap-3 p-4 md:grid-cols-[1fr_1fr_2fr_1fr]">
+        <legend className="sr-only">Datas e ordenação</legend>
+        <label className="text-sm text-ink-soft">
+          Data usada
+          <select className="field-control mt-1" value={data.base} onChange={(e) => mudarData({ base: e.target.value as BaseData, ano: '' })}>
+            {(Object.keys(ROTULO_BASE_DATA) as BaseData[]).map((b) => (
+              <option key={b} value={b}>
+                {ROTULO_BASE_DATA[b]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm text-ink-soft">
+          Período
+          <select className="field-control mt-1" value={data.modo} onChange={(e) => mudarData({ modo: e.target.value as ModoData })}>
+            <option value="todas">Qualquer data</option>
+            <option value="ano">Por ano</option>
+            <option value="intervalo">Por intervalo de datas</option>
+            <option value="sem-data">Somente “Data não informada”</option>
+          </select>
+        </label>
+        <div className="text-sm text-ink-soft">
+          {data.modo === 'ano' ? (
+            <label className="block">
+              Ano
+              <select className="field-control mt-1" value={data.ano} onChange={(e) => mudarData({ ano: e.target.value })} disabled={!anos.length}>
+                <option value="">{anos.length ? 'Todos os anos com data' : 'Nenhum ano no catálogo'}</option>
+                {anos.map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : data.modo === 'intervalo' ? (
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block">
+                Data inicial
+                <input type="date" className="field-control mt-1" value={data.de} max={data.ate || undefined} onChange={(e) => mudarData({ de: e.target.value })} />
+              </label>
+              <label className="block">
+                Data final
+                <input type="date" className="field-control mt-1" value={data.ate} min={data.de || undefined} onChange={(e) => mudarData({ ate: e.target.value })} />
+              </label>
+            </div>
+          ) : (
+            <p className="mt-6 text-xs text-ink-muted">
+              {data.modo === 'sem-data'
+                ? 'Mostrando só itens sem esta data no catálogo.'
+                : 'Escolha “Por ano” ou “Por intervalo de datas” (um de cada vez).'}
+            </p>
+          )}
+        </div>
+        <label className="text-sm text-ink-soft">
+          Ordenar por
+          <select className="field-control mt-1" value={ordem} onChange={(e) => setOrdem(e.target.value as OrdemDrive)}>
+            {ORDENS_DRIVE.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.rotulo}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="text-xs text-ink-muted md:col-span-4">
+          Datas do Google Drive: criação e última modificação do arquivo no Drive. Elas não representam necessariamente
+          a data de gravação ou do evento. Nada é deduzido pelo nome do arquivo. Nas ordenações por data, itens sem data
+          ficam no fim; as pastas vêm antes dos arquivos e usam a data da própria pasta.
+        </p>
+        {semDatas && (
+          <div className="md:col-span-4">
+            <Nota tom="aviso">
+              O catálogo atual (consulta de {DRIVE_DATA_CONSULTA}) não traz a {ROTULO_BASE_DATA[data.base].toLowerCase()}.
+              Por isso todos os itens aparecem como “Data não informada” e os filtros por ano e intervalo não encontram
+              resultados. É preciso atualizar o catálogo com as datas do Google Drive (createdTime e modifiedTime).
+            </Nota>
+          </div>
+        )}
+      </fieldset>
       <div className="-mt-2 flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -207,6 +351,8 @@ function BibliotecaLiderar() {
             setTexto('')
             setBusca('')
             setTipo('')
+            setData(FILTRO_DATA_VAZIO)
+            setOrdem('relevancia')
           }}
         >
           Limpar filtros
@@ -223,16 +369,17 @@ function BibliotecaLiderar() {
       </p>
 
       <p aria-live="polite" className="text-sm text-ink-soft">
-        <ResumoResultados itens={resultados} /> · {comTermos ? 'nesta pasta e subpastas' : 'conteúdo direto da pasta'}
+        <ResumoResultados itens={resultados} /> · {naArvore ? 'nesta pasta e subpastas' : 'conteúdo direto da pasta'} ·
+        Data usada: <strong>{ROTULO_BASE_DATA[data.base]}</strong>
       </p>
 
       {visiveis.length ? (
         <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {visiveis.map((x) =>
             x.type === 'Pasta' ? (
-              <CartaoPasta key={x.indice} x={x} indice={indice} onAbrir={abrirPasta} />
+              <CartaoPasta key={x.indice} x={x} indice={indice} base={data.base} onAbrir={abrirPasta} />
             ) : (
-              <CartaoMidia key={x.indice} x={x} onPrevia={setPrevia} />
+              <CartaoMidia key={x.indice} x={x} base={data.base} onPrevia={setPrevia} />
             ),
           )}
         </ul>
@@ -324,38 +471,32 @@ function ResumoResultados({ itens }: { itens: ItemIndexado[] }) {
   )
 }
 
-/** Miniatura do Drive carregada sob demanda; se falhar, mostra a alternativa. */
-function Miniatura({ id, alternativa, className }: { id: string; alternativa: ReactNode; className?: string }) {
-  const [estado, setEstado] = useState<'carregando' | 'ok' | 'falhou'>(id ? 'carregando' : 'falhou')
+/** Selo de ano (da data escolhida) e linha com a última modificação no Drive. */
+function DatasDoItem({ x, base, pasta }: { x: ItemIndexado; base: BaseData; pasta?: boolean }) {
+  const ano = diaDe(x, base).slice(0, 4)
+  const modificacao = diaDe(x, 'modificacao')
   return (
     <>
-      {estado !== 'ok' && alternativa}
-      {id && estado !== 'falhou' && (
-        <img
-          src={urlMiniatura(id)}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
-          onLoad={() => setEstado('ok')}
-          onError={() => setEstado('falhou')}
-          className={cx('absolute inset-0 size-full object-cover', estado === 'carregando' && 'opacity-0', className)}
-        />
-      )}
+      <div className="flex flex-wrap gap-1.5">
+        {ano ? (
+          <Etiqueta>
+            <CalendarDays className="mr-1 size-3" aria-hidden />
+            <span className="sr-only">Ano ({ROTULO_BASE_DATA[base]}): </span>
+            {ano}
+          </Etiqueta>
+        ) : null}
+      </div>
+      <p className="text-[11px] text-ink-muted">
+        {modificacao
+          ? `${pasta ? 'Pasta modificada' : 'Modificado'} no Drive em ${formatarData(modificacao)}`
+          : `${pasta ? 'Modificação da pasta' : 'Última modificação'}: Data não informada`}
+        {base === 'criacao' && ` · Criação: ${diaDe(x, 'criacao') ? formatarData(diaDe(x, 'criacao')) : 'Data não informada'}`}
+      </p>
     </>
   )
 }
 
-function CapaGrafica({ titulo, icone: Icone }: { titulo: string; icone: LucideIcon }) {
-  return (
-    <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-br from-brand-700 to-brand-500 p-4 text-white">
-      <Icone className="absolute top-3 right-3 size-12 opacity-30" aria-hidden />
-      <p className="line-clamp-2 text-lg leading-tight font-semibold break-words">{titulo}</p>
-    </div>
-  )
-}
-
-function CartaoPasta({ x, indice, onAbrir }: { x: ItemIndexado; indice: IndiceDrive; onAbrir: (p: string) => void }) {
+function CartaoPasta({ x, indice, base, onAbrir }: { x: ItemIndexado; indice: IndiceDrive; base: BaseData; onAbrir: (p: string) => void }) {
   const { tema, foto } = indice.capaDe(x.path)
   const contagem = indice.contagens.get(x.path) ?? { fotos: 0, videos: 0 }
   const Icone = tema ? ICONE_TEMA[tema.icone] : FolderOpen
@@ -381,6 +522,7 @@ function CartaoPasta({ x, indice, onAbrir }: { x: ItemIndexado; indice: IndiceDr
         <p className="text-[11px] text-ink-muted">
           {foto ? `Capa: ${foto.name}` : tema ? `Capa gráfica · ${tema.descricao}` : 'Capa gráfica'}
         </p>
+        <DatasDoItem x={x} base={base} pasta />
         <div className="mt-auto flex flex-wrap gap-2 pt-3">
           <button type="button" className="btn-primary flex-1" onClick={() => onAbrir(x.path)}>
             Abrir pasta
@@ -397,7 +539,7 @@ function CartaoPasta({ x, indice, onAbrir }: { x: ItemIndexado; indice: IndiceDr
   )
 }
 
-function CartaoMidia({ x, onPrevia }: { x: ItemIndexado; onPrevia: (x: ItemIndexado) => void }) {
+function CartaoMidia({ x, base, onPrevia }: { x: ItemIndexado; base: BaseData; onPrevia: (x: ItemIndexado) => void }) {
   const video = x.midia === 'Vídeo'
   const Icone = video ? Film : ImageIcon
   return (
@@ -419,6 +561,7 @@ function CartaoMidia({ x, onPrevia }: { x: ItemIndexado; onPrevia: (x: ItemIndex
       <div className="flex flex-1 flex-col gap-1.5 p-4">
         <h3 className="text-sm font-semibold break-words text-ink">{x.name}</h3>
         <p className="text-[11px] break-words text-ink-muted">{x.pai}</p>
+        <DatasDoItem x={x} base={base} />
         <div className="mt-auto flex flex-wrap gap-2 pt-3">
           <button type="button" className="btn-primary flex-1" onClick={() => onPrevia(x)}>
             Visualizar prévia

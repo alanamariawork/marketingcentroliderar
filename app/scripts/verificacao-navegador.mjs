@@ -105,6 +105,7 @@ ok('sem envio nem aprovação sem login', (await page.getByRole('button', { name
 ok('pendência de login explicada', (await page.getByRole('dialog').getByText(/ainda não tem login/).count()) === 1)
 await page.keyboard.press('Escape')
 await go('', 'atividades')
+ok('barra lateral sem bloco de aprovação', (await page.locator('aside').getByText(/Aprovação centralizada|aprovação final/).count()) === 0)
 ok('sem botão "Aguardando Kélvia"', (await page.getByRole('button', { name: /Aguardando Kélvia/ }).count()) === 0)
 const totalCartoes = await page.locator('article').count()
 const resumoEntregas = await page.getByText(/\d+ entregas?/).first().innerText()
