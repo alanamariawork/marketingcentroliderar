@@ -11,6 +11,10 @@ import { aplicarAcao, podeDecidir, podeEnviar, type AcaoAprovacao } from '../lib
 import { rotuloAgendamento } from '../lib/calendario'
 import { formatarCarimbo } from '../lib/dates'
 import { EditorMaterial, useRascunhoMaterial, VisualizarMaterial } from './Material'
+import { useCriativos } from '../state/Criativos'
+import { useModais } from '../state/Modais'
+import { statusDoCriativo, versaoAtual } from '../lib/criativos'
+import { SeloStatusCriativo } from '../components/Selos'
 
 export function DetalheAtividade({ id, onFechar }: { id: string; onFechar: () => void }) {
   const { atividades, usuario, atualizarAtividade, excluirAtividade } = useSessao()
@@ -82,6 +86,10 @@ export function DetalheAtividade({ id, onFechar }: { id: string; onFechar: () =>
 
         <EditorAgendamento key={`${a.dataPostagem}-${a.horaPostagem}`} id={a.id} />
 
+        {a.criativoId ? (
+          <CriativoVinculado id={a.criativoId} />
+        ) : (
+          <>
         <section aria-labelledby="titulo-material" className="space-y-2">
           <h3 id="titulo-material" className="text-sm font-semibold text-ink">
             Material para aprovação
@@ -151,6 +159,9 @@ export function DetalheAtividade({ id, onFechar }: { id: string; onFechar: () =>
             </Nota>
           )}
         </section>
+
+          </>
+        )}
 
         <section aria-labelledby="titulo-historico">
           <h3 id="titulo-historico" className="eyebrow">
@@ -266,5 +277,32 @@ function AtualizarMaterial({ id, onConcluir }: { id: string; onConcluir: () => v
         </button>
       </div>
     </div>
+  )
+}
+
+/** Com criativo vinculado, material e decisão ficam no criativo: uma referência só para as duas telas. */
+function CriativoVinculado({ id }: { id: string }) {
+  const { criativos } = useCriativos()
+  const { abrir } = useModais()
+  const c = criativos.find((x) => x.id === id)
+  if (!c) return null
+  return (
+    <section aria-labelledby="titulo-criativo-vinculado" className="space-y-2 rounded-[var(--radius-card)] border border-line p-4">
+      <h3 id="titulo-criativo-vinculado" className="text-sm font-semibold text-ink">
+        Criativo vinculado
+      </h3>
+      <p className="text-sm text-ink">{c.nome}</p>
+      <div className="flex flex-wrap gap-2">
+        <SeloStatusCriativo status={statusDoCriativo(c)} />
+        <Etiqueta>Versão {versaoAtual(c).numero}</Etiqueta>
+      </div>
+      <p className="text-xs text-ink-muted">
+        O material, as versões e a decisão desta atividade ficam no criativo (Drive › Criativos), para que as duas telas
+        mostrem sempre o mesmo status.
+      </p>
+      <button type="button" className="btn-secondary" onClick={() => abrir({ tipo: 'criativo', id: c.id })}>
+        Abrir criativo
+      </button>
+    </section>
   )
 }

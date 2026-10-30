@@ -214,6 +214,81 @@ testes cobrem o caso de falha (Drive bloqueado). Para confirmar, abra o Drive pe
   “docx”, “planilha”), contagens, paginação, prévia de foto e vídeo com Drive bloqueado, foco, botão geral no
   final, celular (390 px) sem rolagem horizontal, e as verificações anteriores de Insights e Cronograma.
 
+## Drive: Acervo e Criativos (30/10/2026)
+
+A página Drive tem duas abas: **Acervo** (a biblioteca de fotos e vídeos de antes, preservada) e **Criativos**
+(artes e vídeos produzidos, inclusive no Canva).
+
+### Acervo: filtros, datas e ordenação
+
+- Filtros: palavras-chave, tipo, pasta, e **Período**: qualquer data, por ano, por intervalo (data inicial e
+  final) ou somente “Data não informada”. Ano e intervalo são modos de um mesmo campo, então nunca conflitam.
+- **Data usada**: “Criação no Drive” ou “Última modificação no Drive”, sempre identificada no resumo dos
+  resultados. O texto da tela avisa que essas datas não são a data de gravação nem do evento. Nenhuma data é
+  deduzida do nome do arquivo.
+- **Ordenação**: relevância da pesquisa (o comportamento anterior), nome A–Z e Z–A, última modificação e criação
+  (mais recentes ou mais antigos primeiro). Ordena todos os resultados filtrados antes da paginação; sem data vai
+  para o fim nas duas direções; desempate por nome e ID do Drive. Pastas vêm antes dos arquivos e usam a data da
+  própria pasta, apresentada como “Pasta modificada no Drive”, nunca como edição dos arquivos internos.
+- Com palavras-chave ou filtro de data, a pesquisa cobre a pasta atual e as subpastas.
+- **Selos**: tipo (Foto/Vídeo, pílula escura com ícone), ano (quando conhecido) e a data de última modificação
+  quando disponível; “Data não informada” quando não.
+
+**Pendência de metadados:** o catálogo atual (consulta de 16/10/2026) **não traz** `createdTime` nem
+`modifiedTime`. A estrutura está pronta (`ItemDrive.createdTime` e `ItemDrive.modifiedTime`, em RFC 3339, como o
+Drive devolve), mas hoje todos os itens aparecem como “Data não informada” e a tela mostra um aviso. Para ativar os
+filtros por data, o catálogo precisa ser gerado de novo pedindo esses dois campos à API do Drive
+(`files.list` com `fields=files(id,name,mimeType,createdTime,modifiedTime,parents)`). A verificação no navegador
+usa o catálogo real com datas de teste para validar filtros e ordenação.
+
+### Criativos
+
+- Pasta lógica **Produção** (do sistema, não do Google Drive: nada é criado ou movido lá), com um grupo por
+  **evento ou campanha** e o grupo “Sem evento vinculado”. O sistema não tinha cadastro de eventos ou campanhas,
+  então foi criado um simples (nome, tipo, data, observações) dentro de Produção. Ao abrir um grupo, a tela
+  mostra os detalhes do evento, a contagem e os criativos vinculados.
+- Busca e filtros por evento/campanha, formato, responsável, status e data (última atualização no sistema).
+  Capas: a primeira peça do criativo; sem peça, capa gráfica.
+- **Cadastro**: nome (obrigatório), evento/campanha, atividade vinculada (opcional), responsável, formato,
+  link editável do Canva (só referência; validado como canva.com), link de arquivo ou pasta do Drive
+  (identificado como arquivo ou pasta), observações e as peças: imagens e vídeos anexados ou links de arquivos
+  do Drive, com ordem manual (carrosséis). Link de pasta não vira peça.
+- **Detalhes**: prévia com navegação entre peças, Abrir no Canva, Abrir no Drive, observações, revisão e
+  histórico de versões e decisões (versão, autor, data e hora, decisão, comentário), e consulta de versões
+  anteriores. Se a prévia do Drive falhar, a tela explica e oferece o link; as permissões não são alteradas.
+- **Status**: Em produção, Em revisão, Ajustes solicitados, Aprovado, derivados das decisões da versão atual.
+  Ações: Enviar/Reenviar para revisão (Carlos), Aprovar e Solicitar ajustes (Kélvia; ajustes exigem comentário).
+  Decisão por criativo e versão, sem aprovação em lote.
+- **Versões**: a aprovação vale para uma versão. Trocar, remover, acrescentar ou reordenar peças de uma versão já
+  enviada ou decidida cria a versão seguinte, preserva a anterior e a decisão dela, e exige nova revisão. Antes
+  da primeira revisão, o material é ajustado na própria versão. Responsável, evento, vínculo, links e
+  observações não mudam a versão.
+- **Atividade vinculada**: uma atividade só pode ter um criativo. O criativo é a referência da decisão: a
+  atividade passa a mostrar o status e a versão do criativo (Kanban, Cronograma e detalhe), e o detalhe da
+  atividade aponta para o criativo em vez de ter material e decisão próprios.
+
+**Pendência de autenticação:** continua sem login. Ninguém é identificado, então os botões de envio e decisão
+aparecem desativados com explicação, e nenhuma decisão é atribuída à Kélvia. O fluxo completo (envio, aprovação,
+ajustes, nova revisão) está coberto por testes de unidade e passa a funcionar na tela quando
+`obterUsuarioAutenticado()` devolver a pessoa logada.
+
+**Armazenamento:** o projeto não tem backend nem armazenamento de arquivos. Os cadastros (criativos, eventos,
+versões, decisões) ficam no localStorage, como os Insights, só com texto. Imagens e vídeos anexados ficam no
+IndexedDB do navegador (até 200 MB por arquivo), nunca no localStorage. Tudo isso fica **só neste navegador**:
+não é enviado ao Google Drive, não aparece para outras pessoas nem em outro aparelho e some se os dados do
+navegador forem limpos. Para compartilhar, use links de arquivos do Drive. As atividades continuam só na memória
+da aba: o vínculo com uma atividade nova aparece como “não encontrada nesta sessão” depois de recarregar
+(as atividades demonstrativas sempre existem). Remover um criativo nunca exclui arquivos do Drive ou do Canva.
+
+### Testado
+
+- 59 testes de unidade (datas do Drive, ano/intervalo/sem data, ordenação global antes da paginação, status,
+  decisões, versões, links, vínculo com atividade, filtros, grupos, armazenamento sem binários).
+- Verificação de tipos e build sem erros.
+- 87 verificações gerais no navegador (sem regressões) e a verificação específica
+  `scripts/verificacao-drive-criativos.mjs` (Acervo com e sem datas, ordenação, Criativos, vínculos, imagem,
+  vídeo e carrossel, links, nova versão, persistência após recarregar, remoção, celular).
+
 ## Sugestões de melhoria (fora do escopo aprovado)
 
 - Guardar atividades e contas no navegador (ou em um backend) para não perder ao recarregar.

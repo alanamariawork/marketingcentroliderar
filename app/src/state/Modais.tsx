@@ -4,12 +4,18 @@ import { FormAtividade } from '../forms/FormAtividade'
 import { DetalheAtividade } from '../forms/DetalheAtividade'
 import { FormConta } from '../forms/FormConta'
 import { FormInsight } from '../forms/FormInsight'
+import { FormCriativo } from '../forms/FormCriativo'
+import { DetalheCriativo } from '../forms/DetalheCriativo'
+import { FormEvento } from '../forms/FormEvento'
 
 export type Modal =
   | { tipo: 'nova-atividade'; empresaId: EmpresaId; titulo: string; data?: string }
   | { tipo: 'atividade'; id: string }
   | { tipo: 'conta'; empresaId: EmpresaId }
   | { tipo: 'insight'; empresaId: EmpresaId; id?: string }
+  | { tipo: 'criativo'; id: string }
+  | { tipo: 'form-criativo'; id?: string; eventoId?: string }
+  | { tipo: 'evento'; id?: string }
 
 interface ModaisApi {
   abrir: (m: Modal) => void
@@ -42,6 +48,12 @@ function RenderizarModal({ modal, onFechar }: { modal: Modal; onFechar: () => vo
       return <FormConta empresaId={modal.empresaId} onFechar={onFechar} />
     case 'insight':
       return <FormInsight empresaId={modal.empresaId} id={modal.id} onFechar={onFechar} />
+    case 'criativo':
+      return <DetalheCriativo id={modal.id} onFechar={onFechar} />
+    case 'form-criativo':
+      return <FormCriativo id={modal.id} eventoId={modal.eventoId} onFechar={onFechar} />
+    case 'evento':
+      return <FormEvento id={modal.id} onFechar={onFechar} />
   }
 }
 
