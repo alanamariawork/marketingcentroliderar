@@ -4,7 +4,7 @@
 
 export type EmpresaId = 'smart-games' | 'up-machines' | 'centro-liderar'
 export type NomeEmpresa = 'Smart Games' | 'Up Machines' | 'Centro Liderar'
-export type PaginaId = 'cronograma' | 'atividades' | 'insights' | 'drive' | 'dashboard'
+export type PaginaId = 'cronograma' | 'atividades' | 'drive' | 'dashboard'
 
 /** Pessoa com permissão no fluxo de aprovação. Só é conhecida quando houver autenticação real. */
 export type Perfil = 'Carlos' | 'Kélvia'

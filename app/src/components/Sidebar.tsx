@@ -4,7 +4,6 @@ import {
   FolderOpen,
   KanbanSquare,
   LayoutDashboard,
-  LineChart,
   Plus,
   X,
   type LucideIcon,
@@ -18,7 +17,6 @@ import { Marca } from './Marca'
 export const ICONES_PAGINA: Record<PaginaId, LucideIcon> = {
   cronograma: CalendarDays,
   atividades: KanbanSquare,
-  insights: LineChart,
   drive: FolderOpen,
   dashboard: LayoutDashboard,
 }
@@ -46,7 +44,7 @@ export function Sidebar({ rota, aoNavegar, onAdicionarConta }: PropsSidebar) {
             return (
               <li key={pagina.id}>
                 <a
-                  href={hrefDaRota({ ...rota, pagina: pagina.id })}
+                  href={hrefDaRota({ ...rota, pagina: pagina.id, secao: undefined })}
                   aria-current={atual ? 'page' : undefined}
                   onClick={aoNavegar}
                   className={cx(

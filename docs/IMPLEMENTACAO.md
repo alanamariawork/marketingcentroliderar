@@ -7,7 +7,7 @@ Implementação em React + TypeScript + Vite (pasta `app/`) do modelo aprovado e
 ## Escopo desta versão
 
 O sistema é **exclusivo do Centro Liderar** (“Centro Liderar — Gestão de Marketing”). Não há
-seletor de empresas: a barra lateral mostra Cronograma, Atividades, Insights, Drive e Dashboard, e
+seletor de empresas: a barra lateral mostra Cronograma, Atividades, Drive e Dashboard (com os Insights dentro), e
 o botão “Adicionar conta”, que vincula a nova conta automaticamente ao Centro Liderar.
 
 As contas são perfis e canais administrados pelo Centro Liderar, não empresas: Centro Liderar —
@@ -24,7 +24,7 @@ navegador (chave `mendes-insights-v1`) permanecem gravados, apenas sem exibiçã
 ```bash
 cd app
 npm install
-npm run dev        # http://localhost:5173  (abre no Cronograma; rotas #/cronograma, #/insights…)
+npm run dev        # http://localhost:5173  (abre no Cronograma; rotas #/cronograma, #/dashboard/registros…)
 npm test           # testes de regras, dados importados, armazenamento e datas
 npm run build      # verificação de tipos + build estático em app/dist
 npm run preview    # serve o build em http://localhost:4173
@@ -55,7 +55,7 @@ Age que existe na branch principal.
 | --- | --- |
 | Tema | `src/index.css` |
 | Componentes | `src/components/` (menu, modal acessível, avisos, formulário, selos, filtros, tabela) |
-| Páginas | `src/pages/` (Cronograma, Atividades, Insights, Drive, Dashboard) |
+| Páginas | `src/pages/` (Cronograma, Atividades, Drive, Dashboard) |
 | Formulários | `src/forms/` (atividade, detalhe/aprovação, material, conta, resultados) |
 | Dados importados | `src/data/importados/insights.json` (1.203 registros) |
 | Catálogo do Drive | `public/dados/drive-catalogo/` (68.592 itens em 3 partes + índice, baixado só ao abrir o Drive) |
@@ -288,6 +288,36 @@ da aba: o vínculo com uma atividade nova aparece como “não encontrada nesta 
 - 87 verificações gerais no navegador (sem regressões) e a verificação específica
   `scripts/verificacao-drive-criativos.mjs` (Acervo com e sem datas, ordenação, Criativos, vínculos, imagem,
   vídeo e carrossel, links, nova versão, persistência após recarregar, remoção, celular).
+
+## Dashboard com Insights dentro (17/11/2026)
+
+A aba **Insights** passou a ficar dentro do **Dashboard**, que segue a estrutura do DashPortal adaptada aos
+Insights orgânicos. A barra lateral agora mostra Cronograma, Atividades, Drive e Dashboard. Endereços antigos
+(`#/insights`, `#/centro-liderar/insights`) abrem `#/dashboard/registros`.
+
+- **Cabeçalho de dados**: fonte (planilhas importadas + registros salvos neste navegador), última atualização,
+  botão **Atualizar** e atualização automática a cada 60 minutos (relê os dados locais e importados).
+- **Abas de conta**: "Todas as contas" (com collabs contadas uma vez) e uma aba por conta, com a contagem de
+  registros. Jaciara Mendes — Instagram continua selecionada por padrão.
+- **Período**: Período automático, Hoje, Ontem, Este mês, Últimos dias (quantidade editável), Avançado (De/Até) e
+  Todo o histórico. Os números são comparados com o período anterior do mesmo tamanho. Como os registros são
+  coletados depois da postagem (a última é de 09/10/2026), o período automático cobre os **30 dias que terminam
+  na publicação mais recente da seleção**; Hoje, Ontem e Este mês podem ficar vazios, e a tela diz isso.
+- **Subabas** (`#/dashboard/<subaba>`):
+  - **Consolidados**: 8 indicadores com variação, taxas e médias, gráfico dos últimos 12 meses, score por regra
+    e distribuição do funil.
+  - **Detalhamento**: resumo do histórico e tabela mês a mês com linha de total; desempenho por formato.
+  - **Publicações**: tendência diária e ranking de publicações (alcance, reproduções, interações, seguidores,
+    Score Liderar, Score MQA) com link do Instagram e "Ver / editar".
+  - **Registros (Insights)**: a antiga página Insights (tabela paginada, Adicionar dados, edição).
+- **Adaptações**: o DashPortal é de tráfego pago. Sem investimento nos Insights orgânicos, CPM/CTR/CPC viraram
+  taxa de engajamento (interações ÷ alcance, só nos posts com os dois), alcance médio por post, % de não
+  seguidores e tempo médio de visualização. A subaba "Criativos" chama-se **Publicações** para não confundir com
+  Drive › Criativos. Valores ausentes continuam sem entrar como zero.
+- **Código**: `src/lib/dashboard.ts` (períodos, totais, mês a mês, dia a dia, ranking), `src/pages/Dashboard.tsx`.
+  `src/pages/Insights.tsx` e `src/components/FiltrosInsights.tsx` foram removidos.
+- **Testes**: `src/__tests__/dashboard.test.ts`; no navegador, `scripts/verificacao-dashboard.mjs` (37 verificações,
+  incluindo celular a 390 px) e `scripts/verificacao-navegador.mjs` atualizado (88 verificações).
 
 ## Sugestões de melhoria (fora do escopo aprovado)
 

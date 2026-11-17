@@ -22,7 +22,6 @@ export function nomeEmpresa(id: EmpresaId): NomeEmpresa {
 export const PAGINAS: { id: PaginaId; nome: string }[] = [
   { id: 'cronograma', nome: 'Cronograma' },
   { id: 'atividades', nome: 'Atividades' },
-  { id: 'insights', nome: 'Insights' },
   { id: 'drive', nome: 'Drive' },
   { id: 'dashboard', nome: 'Dashboard' },
 ]

@@ -156,7 +156,10 @@ describe('biblioteca do Drive (somente fotos e vídeos)', () => {
 describe('rotas (sistema exclusivo do Centro Liderar)', async () => {
   const { lerRota, hrefDaRota } = await import('../lib/rotas')
   it('lê "#/pagina" e o formato antigo do Centro Liderar', () => {
-    expect(lerRota('#/insights')).toEqual({ empresaId: 'centro-liderar', pagina: 'insights' })
+    expect(lerRota('#/insights')).toEqual({ empresaId: 'centro-liderar', pagina: 'dashboard', secao: 'registros' })
+    expect(lerRota('#/dashboard/detalhamento')).toEqual({ empresaId: 'centro-liderar', pagina: 'dashboard', secao: 'detalhamento' })
+    expect(lerRota('#/dashboard/outra')).toBeNull()
+    expect(hrefDaRota({ empresaId: 'centro-liderar', pagina: 'dashboard', secao: 'publicacoes' })).toBe('#/dashboard/publicacoes')
     expect(lerRota('#/centro-liderar/drive')).toEqual({ empresaId: 'centro-liderar', pagina: 'drive' })
     expect(hrefDaRota({ empresaId: 'centro-liderar', pagina: 'dashboard' })).toBe('#/dashboard')
   })

@@ -10,7 +10,6 @@ import { nomeDaEmpresa, nomeDaPagina, useRota, type Rota } from './lib/rotas'
 import { NOME_DO_SISTEMA } from './data/constants'
 import { Cronograma } from './pages/Cronograma'
 import { Atividades } from './pages/Atividades'
-import { Insights } from './pages/Insights'
 import { Drive } from './pages/Drive'
 import { Dashboard } from './pages/Dashboard'
 
@@ -141,11 +140,9 @@ function Pagina({ rota }: { rota: Rota }) {
           onNova={() => abrir({ tipo: 'nova-atividade', empresaId, titulo: 'Adicionar atividade' })}
         />
       )
-    case 'insights':
-      return <Insights key={empresaId} empresaId={empresaId} />
     case 'drive':
       return <Drive key={empresaId} empresaId={empresaId} />
     case 'dashboard':
-      return <Dashboard key={empresaId} empresaId={empresaId} />
+      return <Dashboard key={empresaId} empresaId={empresaId} secao={rota.secao ?? 'consolidados'} />
   }
 }
