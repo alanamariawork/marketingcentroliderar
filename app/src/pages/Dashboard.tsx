@@ -170,7 +170,7 @@ export function Dashboard({ empresaId, secao }: { empresaId: EmpresaId; secao: S
             aria-current={secao === s ? 'page' : undefined}
             className={cx(
               '-mb-px shrink-0 border-b-2 px-4 py-2.5 text-sm whitespace-nowrap',
-              secao === s ? 'border-brand-600 font-semibold text-ink' : 'border-transparent text-ink-muted hover:text-ink',
+              secao === s ? 'border-accent-ink font-semibold text-ink' : 'border-transparent text-ink-muted hover:text-ink',
             )}
           >
             {ROTULO_SECAO[s]}

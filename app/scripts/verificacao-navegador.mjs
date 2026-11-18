@@ -31,7 +31,7 @@ for (const pag of ['cronograma', 'atividades', 'drive', 'dashboard']) {
 const menu = await page.locator('aside nav').innerText()
 ok('menu com as 4 páginas na ordem (Insights dentro do Dashboard)', menu.replace(/\s+/g, ' ').trim() === 'Cronograma Atividades Drive Dashboard Adicionar conta', menu.replace(/\s+/g, ' '))
 ok('sem Smart Games, Up Machines ou seletor de empresas', !/Smart Games|Up Machines|Empresas/.test(await page.locator('body').innerText()))
-ok('nome do sistema', (await page.locator('aside').innerText()).includes('CENTRO LIDERAR') && (await page.title()).includes('Centro Liderar — Gestão de Marketing'), await page.title())
+ok('nome do sistema', /Centro Liderar\s+Gestão de Marketing/.test(await page.locator('aside').innerText()) && (await page.title()).includes('Centro Liderar — Gestão de Marketing'), await page.title())
 await page.goto(`${BASE}#/smart-games/atividades`); await page.waitForTimeout(400)
 ok('rota antiga de outra empresa cai no Cronograma', (await page.locator('h1').innerText()) === 'Cronograma')
 await page.goto(`${BASE}#/centro-liderar/insights`); await page.waitForTimeout(400)

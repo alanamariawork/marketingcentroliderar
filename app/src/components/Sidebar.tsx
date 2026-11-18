@@ -32,7 +32,7 @@ interface PropsSidebar {
 export function Sidebar({ rota, aoNavegar, onAdicionarConta }: PropsSidebar) {
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-ink">
-      <div className="px-5 pt-5 pb-5">
+      <div className="px-5 pt-[18px] pb-[18px]">
         <Marca />
       </div>
 
@@ -48,13 +48,13 @@ export function Sidebar({ rota, aoNavegar, onAdicionarConta }: PropsSidebar) {
                   aria-current={atual ? 'page' : undefined}
                   onClick={aoNavegar}
                   className={cx(
-                    'flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-sm transition-colors',
+                    'group relative flex min-h-9 items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 py-2 text-sm transition-colors',
                     atual
-                      ? 'bg-sidebar-active font-medium text-white shadow-[inset_3px_0_0_0_#fff]'
-                      : 'text-sidebar-muted hover:bg-white/5 hover:text-sidebar-ink',
+                      ? 'bg-sidebar-active font-semibold text-white before:absolute before:top-2 before:bottom-2 before:-left-3 before:w-[3px] before:rounded-r-[3px] before:bg-sidebar-accent'
+                      : 'font-medium text-sidebar-ink hover:bg-sidebar-active hover:text-white',
                   )}
                 >
-                  <Icone className="size-4 shrink-0" aria-hidden />
+                  <Icone className={cx('size-4 shrink-0', atual ? 'text-sidebar-label' : 'text-sidebar-muted group-hover:text-sidebar-label')} aria-hidden />
                   {pagina.nome}
                 </a>
               </li>
@@ -67,7 +67,7 @@ export function Sidebar({ rota, aoNavegar, onAdicionarConta }: PropsSidebar) {
             aoNavegar?.()
             onAdicionarConta()
           }}
-          className="mt-4 flex w-full items-center gap-3 rounded-[var(--radius-control)] border border-white/15 px-3 py-2 text-left text-sm text-sidebar-ink transition-colors hover:bg-white/5"
+          className="mt-4 flex w-full items-center gap-3 rounded-[var(--radius-control)] border border-sidebar-line px-2.5 py-2 text-left text-sm font-medium text-sidebar-label transition-colors hover:bg-sidebar-active hover:text-white"
         >
           <Plus className="size-4 shrink-0" aria-hidden />
           Adicionar conta
@@ -121,7 +121,7 @@ export function SidebarMovel({
   if (!aberta) return null
   return (
     <div className="fixed inset-0 z-40 lg:hidden">
-      <div className="absolute inset-0 bg-gray-900/50" aria-hidden onClick={onFechar} />
+      <div className="absolute inset-0 bg-[#1c232a]/50" aria-hidden onClick={onFechar} />
       <div
         id="menu-movel"
         role="dialog"

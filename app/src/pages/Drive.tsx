@@ -129,7 +129,7 @@ function AbasDrive() {
             onClick={() => setAba(x.id)}
             className={cx(
               '-mb-px border-b-2 px-4 py-2.5 text-left text-sm',
-              aba === x.id ? 'border-brand-600 font-semibold text-ink' : 'border-transparent text-ink-muted hover:text-ink',
+              aba === x.id ? 'border-accent-ink font-semibold text-ink' : 'border-transparent text-ink-muted hover:text-ink',
             )}
           >
             {x.rotulo}

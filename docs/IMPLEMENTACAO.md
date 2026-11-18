@@ -36,18 +36,21 @@ As capturas de tela ficam em `app/verificacao/` (fora do Git).
 
 ## Identidade visual
 
-**Pendência:** nenhum arquivo oficial do Centro Liderar (logotipo, cores, tipografia ou manual)
-foi encontrado no repositório nem na pasta do projeto. A interface usa uma **base neutra
-provisória**, sem reaproveitar as cores do HTML de demonstração nem a identidade da Mulher Que
-Age que existe na branch principal.
+Desde 18/11/2026 o sistema usa a **aparência do backoffice do Centro Liderar** (pacote
+`backoffice-com-pedagogico-2026-11-16.zip`, arquivo `src/styles/tokens.css` de lá), nas páginas claras:
 
-- Tema centralizado no bloco `@theme` de `app/src/index.css` (cores, fontes, raios, sombras).
-- Nome do sistema em `NOME_DO_SISTEMA` (`app/src/data/constants.ts`) e logotipo em
-  `app/src/components/Marca.tsx`.
-- O catálogo do Drive lista pastas que podem conter a marca (por exemplo
-  `LIDERAR / CLIENTES MÍDIAS / LIDERAR / LOGO` e `LOGO EM COREL`); os arquivos não foram baixados
-  nem usados. Quando os arquivos oficiais forem enviados, basta trocar os valores do tema e o
-  componente `Marca`.
+- Fundo em neutro quente `#ebe4da`, cartões brancos com borda `#e9e2da` e sombra discreta.
+- Cor principal grafite `#2d3a45` (botões, conta selecionada, gráficos) e acento dourado `#a07a4f`
+  (indicador do menu, aba ativa, linha de referência).
+- Barra lateral escura `#1c232a`, item ativo `#35383a` com barra dourada, ícones em `#dcc7a8`.
+- Texto `#2c2522` / `#574d47` / `#675c55`; sucesso `#2c7a53`, atenção `#95600f`, perigo `#b0281f`.
+- Fonte **Inter** (embutida com `@fontsource-variable/inter`, sem depender de serviço externo).
+- Marca no menu igual à do backoffice: símbolo "CL" em degradê grafite→dourado, "Centro Liderar" e
+  "Gestão de Marketing"; favicon do backoffice.
+
+Os valores ficam no bloco `@theme` de `app/src/index.css`; a marca em `app/src/components/Marca.tsx`.
+O tema escuro vinho da Visão Geral do backoffice não foi usado: lá ele vale só para aquela página, e as
+páginas operacionais são claras.
 
 ## Organização do código
 
@@ -121,7 +124,6 @@ mostram erro e mantêm o formulário preenchido; o sucesso só aparece depois da
 
 ## Pendências e limitações
 
-- Identidade visual oficial do Centro Liderar (ver acima).
 - **Login pendente.** Não há autenticação, backend nem sincronização entre pessoas. Sem login, o sistema não
   identifica ninguém e não permite enviar para aprovação, aprovar nem pedir ajustes pela interface (ver abaixo).
 - **Cores de Insights pendentes** (ver “Ajustes de 22/10/2026”).

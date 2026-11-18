@@ -66,7 +66,7 @@ function Estrutura() {
           </main>
           <footer className="border-t border-line px-4 py-3 text-xs text-ink-muted sm:px-6 lg:px-8">
             Atividades demonstrativas e contas adicionadas ficam só nesta sessão · Insights importados das planilhas e
-            salvos neste navegador · Tema neutro provisório · Sem integrações externas
+            salvos neste navegador · Visual do Centro Liderar · Sem integrações externas
           </footer>
         </div>
       </div>
