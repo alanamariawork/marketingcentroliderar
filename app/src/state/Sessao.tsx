@@ -9,11 +9,11 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import type { Atividade, Conta, EmpresaId, EventoHistorico, Perfil } from '../data/types'
 import { hoje } from '../lib/dates'
 import { obterUsuarioAutenticado } from './Autenticacao'
+import { useCriativosOpcional } from './Criativos'
+import { comCriativo } from '../lib/criativos'
+import { gerarId } from '../lib/id'
 
-export function gerarId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID()
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
-}
+export { gerarId }
 
 /** As três entregas de exemplo da referência (Centro Liderar, postagem hoje). */
 export function atividadesDemonstrativas(dia: string = hoje()): Atividade[] {
@@ -50,6 +50,12 @@ export function ProvedorSessao({
 }) {
   const [atividades, setAtividades] = useState<Atividade[]>(() => inicial ?? atividadesDemonstrativas())
   const [contas, setContas] = useState<Conta[]>([])
+  // Com criativo vinculado, status e versão da atividade vêm do criativo (uma só decisão nas duas telas).
+  const criativos = useCriativosOpcional()?.criativos
+  const efetivas = useMemo(
+    () => (criativos?.length ? atividades.map((a) => comCriativo(a, criativos)) : atividades),
+    [atividades, criativos],
+  )
 
   const criarAtividade = useCallback((a: Omit<Atividade, 'id'>) => {
     const nova = { ...a, id: gerarId() }
@@ -73,8 +79,8 @@ export function ProvedorSessao({
   }, [])
 
   const valor = useMemo(
-    () => ({ usuario, atividades, criarAtividade, atualizarAtividade, excluirAtividade, contas, criarConta }),
-    [usuario, atividades, criarAtividade, atualizarAtividade, excluirAtividade, contas, criarConta],
+    () => ({ usuario, atividades: efetivas, criarAtividade, atualizarAtividade, excluirAtividade, contas, criarConta }),
+    [usuario, efetivas, criarAtividade, atualizarAtividade, excluirAtividade, contas, criarConta],
   )
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>
 }

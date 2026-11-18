@@ -3,26 +3,28 @@ import { Menu, Plus } from 'lucide-react'
 import { Sidebar, SidebarMovel } from './components/Sidebar'
 import { ProvedorFeedback } from './components/Feedback'
 import { ProvedorSessao } from './state/Sessao'
+import { ProvedorCriativos } from './state/Criativos'
 import { ProvedorInsights } from './state/Insights'
 import { ProvedorModais, useModais } from './state/Modais'
 import { nomeDaEmpresa, nomeDaPagina, useRota, type Rota } from './lib/rotas'
 import { NOME_DO_SISTEMA } from './data/constants'
 import { Cronograma } from './pages/Cronograma'
 import { Atividades } from './pages/Atividades'
-import { Insights } from './pages/Insights'
 import { Drive } from './pages/Drive'
 import { Dashboard } from './pages/Dashboard'
 
 export default function App() {
   return (
     <ProvedorFeedback>
-      <ProvedorSessao>
-        <ProvedorInsights>
-          <ProvedorModais>
-            <Estrutura />
-          </ProvedorModais>
-        </ProvedorInsights>
-      </ProvedorSessao>
+      <ProvedorCriativos>
+        <ProvedorSessao>
+          <ProvedorInsights>
+            <ProvedorModais>
+              <Estrutura />
+            </ProvedorModais>
+          </ProvedorInsights>
+        </ProvedorSessao>
+      </ProvedorCriativos>
     </ProvedorFeedback>
   )
 }
@@ -64,7 +66,7 @@ function Estrutura() {
           </main>
           <footer className="border-t border-line px-4 py-3 text-xs text-ink-muted sm:px-6 lg:px-8">
             Atividades demonstrativas e contas adicionadas ficam só nesta sessão · Insights importados das planilhas e
-            salvos neste navegador · Tema neutro provisório · Sem integrações externas
+            salvos neste navegador · Visual do Centro Liderar · Sem integrações externas
           </footer>
         </div>
       </div>
@@ -138,11 +140,9 @@ function Pagina({ rota }: { rota: Rota }) {
           onNova={() => abrir({ tipo: 'nova-atividade', empresaId, titulo: 'Adicionar atividade' })}
         />
       )
-    case 'insights':
-      return <Insights key={empresaId} empresaId={empresaId} />
     case 'drive':
       return <Drive key={empresaId} empresaId={empresaId} />
     case 'dashboard':
-      return <Dashboard key={empresaId} empresaId={empresaId} />
+      return <Dashboard key={empresaId} empresaId={empresaId} secao={rota.secao ?? 'consolidados'} />
   }
 }

@@ -1,74 +1,80 @@
 @import 'tailwindcss';
 
 /*
- * TEMA — BASE NEUTRA PROVISÓRIA
+ * TEMA — IDENTIDADE DO CENTRO LIDERAR
  *
- * Os arquivos oficiais de identidade visual do Centro Liderar (logotipo, cores,
- * tipografia, manual) não estavam no repositório nem na pasta do projeto. Esta
- * base é neutra e provisória: não reproduz as cores do HTML de demonstração nem
- * a identidade da Mulher Que Age que existe na branch principal.
- *
- * Toda a interface usa estas variáveis. Para aplicar a identidade oficial,
- * troque somente os valores abaixo (e o nome/logotipo em components/Marca.tsx).
+ * Mesma base visual do backoffice do Centro Liderar (src/styles/tokens.css de lá):
+ * neutros quentes, grafite #2d3a45 como cor principal, dourado #a07a4f como acento,
+ * barra lateral escura #1c232a e tipografia Inter. Toda a interface usa estas
+ * variáveis; para ajustar a identidade, troque somente os valores abaixo.
  */
 @theme {
-  /* Tipografia (fontes do sistema até a tipografia oficial ser definida) */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Tipografia (Inter, a mesma do backoffice, embutida via @fontsource) */
+  --font-sans: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-display: var(--font-sans);
 
-  /* Cor principal (grafite azulado, provisória) */
-  --color-brand-50: #eff2f5;
-  --color-brand-100: #dfe5ec;
-  --color-brand-500: #4b5b6d;
-  --color-brand-600: #37475a;
-  --color-brand-700: #273647;
+  /* Cor principal (grafite do Centro Liderar) */
+  --color-brand-50: #f0f1f2;
+  --color-brand-100: #cdd1d5;
+  --color-brand-500: #3c4a56;
+  --color-brand-600: #222b34;
+  --color-brand-700: #2d3a45;
   --color-brand-contrast: #ffffff;
 
-  /* Superfícies e texto (contraste AA sobre branco e sobre o fundo) */
-  --color-canvas: #f6f5f2;
+  /* Acento dourado */
+  --color-accent: #a07a4f;
+  --color-accent-ink: #86653f;
+  --color-accent-soft: #f3ede5;
+  --color-accent-light: #dcc7a8;
+
+  /* Superfícies e texto (neutros quentes; contraste AA verificado no backoffice) */
+  --color-canvas: #ebe4da;
   --color-surface: #ffffff;
-  --color-surface-muted: #f1efeb;
-  --color-line: #e5e2dc;
-  --color-line-strong: #cdc8bf;
-  --color-ink: #1d2126;
-  --color-ink-soft: #383e45;
-  --color-ink-muted: #5c626a;
-  --color-focus: #2d5f8f;
+  --color-surface-muted: #f5f1ec;
+  --color-line: #e9e2da;
+  --color-line-strong: #d9cfc4;
+  --color-ink: #2c2522;
+  --color-ink-soft: #574d47;
+  --color-ink-muted: #675c55;
+  --color-focus: #2d3a45;
 
   /* Menu lateral */
-  --color-sidebar: #1f252c;
-  --color-sidebar-ink: #e8eaed;
-  --color-sidebar-muted: #a7aeb7;
-  --color-sidebar-active: #313a45;
+  --color-sidebar: #1c232a;
+  --color-sidebar-ink: #f5efe7;
+  --color-sidebar-muted: #a89f90;
+  --color-sidebar-active: #35383a;
+  --color-sidebar-line: #3b3d3e;
+  --color-sidebar-accent: #a07a4f;
+  --color-sidebar-label: #dcc7a8;
 
   /* Situação das entregas */
-  --color-producao: #3d5a80;
-  --color-producao-soft: #edf2f8;
-  --color-aprovacao: #8a5a00;
-  --color-aprovacao-soft: #fdf5e6;
-  --color-aprovado: #2e6b45;
-  --color-aprovado-soft: #ebf5ee;
-  --color-ajustes: #a03a2c;
-  --color-ajustes-soft: #fbefed;
+  --color-producao: #3c566c;
+  --color-producao-soft: #eef2f5;
+  --color-aprovacao: #95600f;
+  --color-aprovacao-soft: #fbf2e1;
+  --color-aprovado: #2c7a53;
+  --color-aprovado-soft: #e8f3ec;
+  --color-ajustes: #b0281f;
+  --color-ajustes-soft: #fcedeb;
 
   /* Feedback */
-  --color-success: #2e6b45;
-  --color-success-soft: #ebf5ee;
-  --color-danger: #a8302a;
-  --color-danger-soft: #fbefed;
-  --color-warning: #7d5300;
-  --color-warning-soft: #fdf5e6;
+  --color-success: #2c7a53;
+  --color-success-soft: #e8f3ec;
+  --color-danger: #b0281f;
+  --color-danger-soft: #fcedeb;
+  --color-warning: #95600f;
+  --color-warning-soft: #fbf2e1;
 
   /* Gráficos e barras */
-  --color-chart: #4b5b6d;
-  --color-chart-track: #ebe8e2;
-  --color-chart-ref: #b07a1a;
+  --color-chart: #2d3a45;
+  --color-chart-track: #efe9e2;
+  --color-chart-ref: #a07a4f;
 
-  /* Raios e sombras suaves */
+  /* Raios e sombras (cartões do backoffice: borda perceptível + sombra discreta) */
   --radius-card: 0.75rem;
   --radius-control: 0.5rem;
-  --shadow-card: 0 1px 2px rgb(29 33 38 / 0.04), 0 2px 8px rgb(29 33 38 / 0.03);
-  --shadow-overlay: 0 16px 40px rgb(29 33 38 / 0.18);
+  --shadow-card: 0 1px 2px rgb(44 37 34 / 0.05), 0 8px 20px -14px rgb(44 37 34 / 0.35);
+  --shadow-overlay: 0 18px 48px rgb(44 37 34 / 0.16), 0 2px 8px rgb(44 37 34 / 0.06);
 }
 
 html,
@@ -88,6 +94,15 @@ body {
 :where(a, button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+/* No menu escuro, o foco usa o dourado para continuar visível. */
+.bg-sidebar :where(a, button):focus-visible {
+  outline-color: var(--color-sidebar-accent);
+}
+
+::selection {
+  background: rgb(160 122 79 / 0.28);
 }
 
 @utility field-control {

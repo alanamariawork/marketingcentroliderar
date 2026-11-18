@@ -11,6 +11,8 @@ interface EstadoInsights {
   registros: RegistroInsight[]
   /** Quantidade de registros importados das planilhas. */
   totalImportados: number
+  /** Quando os dados foram carregados pela última vez (ISO). */
+  carregadoEm: string | null
   recarregar: () => void
   /** Cria ou atualiza; só resolve depois que a gravação terminou. */
   salvar: (registro: RegistroInsight) => Promise<void>
@@ -35,6 +37,7 @@ export function ProvedorInsights({ children }: { children: ReactNode }) {
   const [gravacaoBloqueada, setGravacaoBloqueada] = useState(false)
   const [registros, setRegistros] = useState<RegistroInsight[]>([])
   const [totalImportados, setTotalImportados] = useState(0)
+  const [carregadoEm, setCarregadoEm] = useState<string | null>(null)
   const [versao, setVersao] = useState(0)
   const [filtros, setFiltrosMapa] = useState<Record<string, FiltrosInsight>>(FILTROS_INICIAIS)
   const [objetivo, setObjetivo] = useState('Alcance')
@@ -51,6 +54,7 @@ export function ProvedorInsights({ children }: { children: ReactNode }) {
         setAviso(carga.aviso)
         setGravacaoBloqueada(carga.gravacaoBloqueada)
         setTotalImportados(importados.length)
+        setCarregadoEm(new Date().toISOString())
       })
       .catch(() => ativo && setErroCarga('Não foi possível carregar os dados importados das planilhas.'))
       .finally(() => ativo && setCarregando(false))
@@ -95,6 +99,7 @@ export function ProvedorInsights({ children }: { children: ReactNode }) {
       gravacaoBloqueada,
       registros,
       totalImportados,
+      carregadoEm,
       recarregar: () => setVersao((v) => v + 1),
       salvar,
       excluir,
@@ -103,7 +108,7 @@ export function ProvedorInsights({ children }: { children: ReactNode }) {
       objetivo,
       setObjetivo,
     }),
-    [carregando, erroCarga, aviso, gravacaoBloqueada, registros, totalImportados, salvar, excluir, filtrosDe, setFiltros, objetivo],
+    [carregando, erroCarga, aviso, gravacaoBloqueada, registros, totalImportados, carregadoEm, salvar, excluir, filtrosDe, setFiltros, objetivo],
   )
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>
 }

@@ -7,7 +7,7 @@ Implementação em React + TypeScript + Vite (pasta `app/`) do modelo aprovado e
 ## Escopo desta versão
 
 O sistema é **exclusivo do Centro Liderar** (“Centro Liderar — Gestão de Marketing”). Não há
-seletor de empresas: a barra lateral mostra Cronograma, Atividades, Insights, Drive e Dashboard, e
+seletor de empresas: a barra lateral mostra Cronograma, Atividades, Drive e Dashboard (com os Insights dentro), e
 o botão “Adicionar conta”, que vincula a nova conta automaticamente ao Centro Liderar.
 
 As contas são perfis e canais administrados pelo Centro Liderar, não empresas: Centro Liderar —
@@ -24,7 +24,7 @@ navegador (chave `mendes-insights-v1`) permanecem gravados, apenas sem exibiçã
 ```bash
 cd app
 npm install
-npm run dev        # http://localhost:5173  (abre no Cronograma; rotas #/cronograma, #/insights…)
+npm run dev        # http://localhost:5173  (abre no Cronograma; rotas #/cronograma, #/dashboard/registros…)
 npm test           # testes de regras, dados importados, armazenamento e datas
 npm run build      # verificação de tipos + build estático em app/dist
 npm run preview    # serve o build em http://localhost:4173
@@ -36,18 +36,21 @@ As capturas de tela ficam em `app/verificacao/` (fora do Git).
 
 ## Identidade visual
 
-**Pendência:** nenhum arquivo oficial do Centro Liderar (logotipo, cores, tipografia ou manual)
-foi encontrado no repositório nem na pasta do projeto. A interface usa uma **base neutra
-provisória**, sem reaproveitar as cores do HTML de demonstração nem a identidade da Mulher Que
-Age que existe na branch principal.
+Desde 18/11/2026 o sistema usa a **aparência do backoffice do Centro Liderar** (pacote
+`backoffice-com-pedagogico-2026-11-16.zip`, arquivo `src/styles/tokens.css` de lá), nas páginas claras:
 
-- Tema centralizado no bloco `@theme` de `app/src/index.css` (cores, fontes, raios, sombras).
-- Nome do sistema em `NOME_DO_SISTEMA` (`app/src/data/constants.ts`) e logotipo em
-  `app/src/components/Marca.tsx`.
-- O catálogo do Drive lista pastas que podem conter a marca (por exemplo
-  `LIDERAR / CLIENTES MÍDIAS / LIDERAR / LOGO` e `LOGO EM COREL`); os arquivos não foram baixados
-  nem usados. Quando os arquivos oficiais forem enviados, basta trocar os valores do tema e o
-  componente `Marca`.
+- Fundo em neutro quente `#ebe4da`, cartões brancos com borda `#e9e2da` e sombra discreta.
+- Cor principal grafite `#2d3a45` (botões, conta selecionada, gráficos) e acento dourado `#a07a4f`
+  (indicador do menu, aba ativa, linha de referência).
+- Barra lateral escura `#1c232a`, item ativo `#35383a` com barra dourada, ícones em `#dcc7a8`.
+- Texto `#2c2522` / `#574d47` / `#675c55`; sucesso `#2c7a53`, atenção `#95600f`, perigo `#b0281f`.
+- Fonte **Inter** (embutida com `@fontsource-variable/inter`, sem depender de serviço externo).
+- Marca no menu igual à do backoffice: símbolo "CL" em degradê grafite→dourado, "Centro Liderar" e
+  "Gestão de Marketing"; favicon do backoffice.
+
+Os valores ficam no bloco `@theme` de `app/src/index.css`; a marca em `app/src/components/Marca.tsx`.
+O tema escuro vinho da Visão Geral do backoffice não foi usado: lá ele vale só para aquela página, e as
+páginas operacionais são claras.
 
 ## Organização do código
 
@@ -55,7 +58,7 @@ Age que existe na branch principal.
 | --- | --- |
 | Tema | `src/index.css` |
 | Componentes | `src/components/` (menu, modal acessível, avisos, formulário, selos, filtros, tabela) |
-| Páginas | `src/pages/` (Cronograma, Atividades, Insights, Drive, Dashboard) |
+| Páginas | `src/pages/` (Cronograma, Atividades, Drive, Dashboard) |
 | Formulários | `src/forms/` (atividade, detalhe/aprovação, material, conta, resultados) |
 | Dados importados | `src/data/importados/insights.json` (1.203 registros) |
 | Catálogo do Drive | `public/dados/drive-catalogo/` (68.592 itens em 3 partes + índice, baixado só ao abrir o Drive) |
@@ -121,7 +124,6 @@ mostram erro e mantêm o formulário preenchido; o sucesso só aparece depois da
 
 ## Pendências e limitações
 
-- Identidade visual oficial do Centro Liderar (ver acima).
 - **Login pendente.** Não há autenticação, backend nem sincronização entre pessoas. Sem login, o sistema não
   identifica ninguém e não permite enviar para aprovação, aprovar nem pedir ajustes pela interface (ver abaixo).
 - **Cores de Insights pendentes** (ver “Ajustes de 22/10/2026”).
@@ -213,6 +215,111 @@ testes cobrem o caso de falha (Drive bloqueado). Para confirmar, abra o Drive pe
   atividades ocultas, histórico preservado, Drive só com fotos/vídeos/pastas (buscas por “contrato”, “pdf”,
   “docx”, “planilha”), contagens, paginação, prévia de foto e vídeo com Drive bloqueado, foco, botão geral no
   final, celular (390 px) sem rolagem horizontal, e as verificações anteriores de Insights e Cronograma.
+
+## Drive: Acervo e Criativos (30/10/2026)
+
+A página Drive tem duas abas: **Acervo** (a biblioteca de fotos e vídeos de antes, preservada) e **Criativos**
+(artes e vídeos produzidos, inclusive no Canva).
+
+### Acervo: filtros, datas e ordenação
+
+- Filtros: palavras-chave, tipo, pasta, e **Período**: qualquer data, por ano, por intervalo (data inicial e
+  final) ou somente “Data não informada”. Ano e intervalo são modos de um mesmo campo, então nunca conflitam.
+- **Data usada**: “Criação no Drive” ou “Última modificação no Drive”, sempre identificada no resumo dos
+  resultados. O texto da tela avisa que essas datas não são a data de gravação nem do evento. Nenhuma data é
+  deduzida do nome do arquivo.
+- **Ordenação**: relevância da pesquisa (o comportamento anterior), nome A–Z e Z–A, última modificação e criação
+  (mais recentes ou mais antigos primeiro). Ordena todos os resultados filtrados antes da paginação; sem data vai
+  para o fim nas duas direções; desempate por nome e ID do Drive. Pastas vêm antes dos arquivos e usam a data da
+  própria pasta, apresentada como “Pasta modificada no Drive”, nunca como edição dos arquivos internos.
+- Com palavras-chave ou filtro de data, a pesquisa cobre a pasta atual e as subpastas.
+- **Selos**: tipo (Foto/Vídeo, pílula escura com ícone), ano (quando conhecido) e a data de última modificação
+  quando disponível; “Data não informada” quando não.
+
+**Pendência de metadados:** o catálogo atual (consulta de 16/10/2026) **não traz** `createdTime` nem
+`modifiedTime`. A estrutura está pronta (`ItemDrive.createdTime` e `ItemDrive.modifiedTime`, em RFC 3339, como o
+Drive devolve), mas hoje todos os itens aparecem como “Data não informada” e a tela mostra um aviso. Para ativar os
+filtros por data, o catálogo precisa ser gerado de novo pedindo esses dois campos à API do Drive
+(`files.list` com `fields=files(id,name,mimeType,createdTime,modifiedTime,parents)`). A verificação no navegador
+usa o catálogo real com datas de teste para validar filtros e ordenação.
+
+### Criativos
+
+- Pasta lógica **Produção** (do sistema, não do Google Drive: nada é criado ou movido lá), com um grupo por
+  **evento ou campanha** e o grupo “Sem evento vinculado”. O sistema não tinha cadastro de eventos ou campanhas,
+  então foi criado um simples (nome, tipo, data, observações) dentro de Produção. Ao abrir um grupo, a tela
+  mostra os detalhes do evento, a contagem e os criativos vinculados.
+- Busca e filtros por evento/campanha, formato, responsável, status e data (última atualização no sistema).
+  Capas: a primeira peça do criativo; sem peça, capa gráfica.
+- **Cadastro**: nome (obrigatório), evento/campanha, atividade vinculada (opcional), responsável, formato,
+  link editável do Canva (só referência; validado como canva.com), link de arquivo ou pasta do Drive
+  (identificado como arquivo ou pasta), observações e as peças: imagens e vídeos anexados ou links de arquivos
+  do Drive, com ordem manual (carrosséis). Link de pasta não vira peça.
+- **Detalhes**: prévia com navegação entre peças, Abrir no Canva, Abrir no Drive, observações, revisão e
+  histórico de versões e decisões (versão, autor, data e hora, decisão, comentário), e consulta de versões
+  anteriores. Se a prévia do Drive falhar, a tela explica e oferece o link; as permissões não são alteradas.
+- **Status**: Em produção, Em revisão, Ajustes solicitados, Aprovado, derivados das decisões da versão atual.
+  Ações: Enviar/Reenviar para revisão (Carlos), Aprovar e Solicitar ajustes (Kélvia; ajustes exigem comentário).
+  Decisão por criativo e versão, sem aprovação em lote.
+- **Versões**: a aprovação vale para uma versão. Trocar, remover, acrescentar ou reordenar peças de uma versão já
+  enviada ou decidida cria a versão seguinte, preserva a anterior e a decisão dela, e exige nova revisão. Antes
+  da primeira revisão, o material é ajustado na própria versão. Responsável, evento, vínculo, links e
+  observações não mudam a versão.
+- **Atividade vinculada**: uma atividade só pode ter um criativo. O criativo é a referência da decisão: a
+  atividade passa a mostrar o status e a versão do criativo (Kanban, Cronograma e detalhe), e o detalhe da
+  atividade aponta para o criativo em vez de ter material e decisão próprios.
+
+**Pendência de autenticação:** continua sem login. Ninguém é identificado, então os botões de envio e decisão
+aparecem desativados com explicação, e nenhuma decisão é atribuída à Kélvia. O fluxo completo (envio, aprovação,
+ajustes, nova revisão) está coberto por testes de unidade e passa a funcionar na tela quando
+`obterUsuarioAutenticado()` devolver a pessoa logada.
+
+**Armazenamento:** o projeto não tem backend nem armazenamento de arquivos. Os cadastros (criativos, eventos,
+versões, decisões) ficam no localStorage, como os Insights, só com texto. Imagens e vídeos anexados ficam no
+IndexedDB do navegador (até 200 MB por arquivo), nunca no localStorage. Tudo isso fica **só neste navegador**:
+não é enviado ao Google Drive, não aparece para outras pessoas nem em outro aparelho e some se os dados do
+navegador forem limpos. Para compartilhar, use links de arquivos do Drive. As atividades continuam só na memória
+da aba: o vínculo com uma atividade nova aparece como “não encontrada nesta sessão” depois de recarregar
+(as atividades demonstrativas sempre existem). Remover um criativo nunca exclui arquivos do Drive ou do Canva.
+
+### Testado
+
+- 59 testes de unidade (datas do Drive, ano/intervalo/sem data, ordenação global antes da paginação, status,
+  decisões, versões, links, vínculo com atividade, filtros, grupos, armazenamento sem binários).
+- Verificação de tipos e build sem erros.
+- 87 verificações gerais no navegador (sem regressões) e a verificação específica
+  `scripts/verificacao-drive-criativos.mjs` (Acervo com e sem datas, ordenação, Criativos, vínculos, imagem,
+  vídeo e carrossel, links, nova versão, persistência após recarregar, remoção, celular).
+
+## Dashboard com Insights dentro (17/11/2026)
+
+A aba **Insights** passou a ficar dentro do **Dashboard**, que segue a estrutura do DashPortal adaptada aos
+Insights orgânicos. A barra lateral agora mostra Cronograma, Atividades, Drive e Dashboard. Endereços antigos
+(`#/insights`, `#/centro-liderar/insights`) abrem `#/dashboard/registros`.
+
+- **Cabeçalho de dados**: fonte (planilhas importadas + registros salvos neste navegador), última atualização,
+  botão **Atualizar** e atualização automática a cada 60 minutos (relê os dados locais e importados).
+- **Abas de conta**: "Todas as contas" (com collabs contadas uma vez) e uma aba por conta, com a contagem de
+  registros. Jaciara Mendes — Instagram continua selecionada por padrão.
+- **Período**: Período automático, Hoje, Ontem, Este mês, Últimos dias (quantidade editável), Avançado (De/Até) e
+  Todo o histórico. Os números são comparados com o período anterior do mesmo tamanho. Como os registros são
+  coletados depois da postagem (a última é de 09/10/2026), o período automático cobre os **30 dias que terminam
+  na publicação mais recente da seleção**; Hoje, Ontem e Este mês podem ficar vazios, e a tela diz isso.
+- **Subabas** (`#/dashboard/<subaba>`):
+  - **Consolidados**: 8 indicadores com variação, taxas e médias, gráfico dos últimos 12 meses, score por regra
+    e distribuição do funil.
+  - **Detalhamento**: resumo do histórico e tabela mês a mês com linha de total; desempenho por formato.
+  - **Publicações**: tendência diária e ranking de publicações (alcance, reproduções, interações, seguidores,
+    Score Liderar, Score MQA) com link do Instagram e "Ver / editar".
+  - **Registros (Insights)**: a antiga página Insights (tabela paginada, Adicionar dados, edição).
+- **Adaptações**: o DashPortal é de tráfego pago. Sem investimento nos Insights orgânicos, CPM/CTR/CPC viraram
+  taxa de engajamento (interações ÷ alcance, só nos posts com os dois), alcance médio por post, % de não
+  seguidores e tempo médio de visualização. A subaba "Criativos" chama-se **Publicações** para não confundir com
+  Drive › Criativos. Valores ausentes continuam sem entrar como zero.
+- **Código**: `src/lib/dashboard.ts` (períodos, totais, mês a mês, dia a dia, ranking), `src/pages/Dashboard.tsx`.
+  `src/pages/Insights.tsx` e `src/components/FiltrosInsights.tsx` foram removidos.
+- **Testes**: `src/__tests__/dashboard.test.ts`; no navegador, `scripts/verificacao-dashboard.mjs` (37 verificações,
+  incluindo celular a 390 px) e `scripts/verificacao-navegador.mjs` atualizado (88 verificações).
 
 ## Sugestões de melhoria (fora do escopo aprovado)
 

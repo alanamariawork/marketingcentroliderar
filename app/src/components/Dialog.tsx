@@ -89,7 +89,7 @@ export function Dialog({
   return createPortal(
     <div className="fixed inset-0 z-50">
       <div
-        className="absolute inset-0 bg-gray-900/40"
+        className="absolute inset-0 bg-[#1c232a]/40"
         aria-hidden="true"
         onClick={() => !bloqueado && onFechar()}
       />

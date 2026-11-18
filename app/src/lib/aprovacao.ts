@@ -7,12 +7,13 @@ import type { Atividade, Perfil } from '../data/types'
 
 export type AcaoAprovacao = 'enviar' | 'aprovar' | 'ajustes'
 
-export function podeEnviar(perfil: Perfil | null, a: Pick<Atividade, 'status'>): boolean {
-  return perfil === 'Carlos' && (a.status === 'Em produção' || a.status === 'Ajustes solicitados')
+/** Com criativo vinculado, a decisão é feita no criativo (referência compartilhada), nunca na atividade. */
+export function podeEnviar(perfil: Perfil | null, a: Pick<Atividade, 'status' | 'criativoId'>): boolean {
+  return !a.criativoId && perfil === 'Carlos' && (a.status === 'Em produção' || a.status === 'Ajustes solicitados')
 }
 
-export function podeDecidir(perfil: Perfil | null, a: Pick<Atividade, 'status'>): boolean {
-  return perfil === 'Kélvia' && a.status === 'Aguardando aprovação'
+export function podeDecidir(perfil: Perfil | null, a: Pick<Atividade, 'status' | 'criativoId'>): boolean {
+  return !a.criativoId && perfil === 'Kélvia' && a.status === 'Aguardando aprovação'
 }
 
 /** Aplica a ação e registra no histórico. Lança erro se o perfil não puder executá-la. */

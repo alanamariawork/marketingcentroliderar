@@ -1,4 +1,5 @@
-import type { Responsavel, StatusAtividade } from '../data/types'
+import { AlertTriangle, CheckCircle2, Eye, Film, Hammer, Image as ImageIcon } from 'lucide-react'
+import type { Responsavel, StatusAtividade, StatusCriativo, TipoMidia } from '../data/types'
 import { cx } from '../lib/format'
 
 const ESTILO_STATUS: Record<StatusAtividade, string> = {
@@ -57,5 +58,43 @@ export function Nota({ children, tom = 'neutro' }: { children: React.ReactNode; 
     >
       {children}
     </div>
+  )
+}
+
+/* ---------- Criativos ---------- */
+
+const ESTILO_STATUS_CRIATIVO: Record<StatusCriativo, { classe: string; icone: typeof Eye }> = {
+  'Em produção': { classe: 'border-producao/40 bg-producao-soft text-producao', icone: Hammer },
+  'Em revisão': { classe: 'border-aprovacao/40 bg-aprovacao-soft text-aprovacao', icone: Eye },
+  'Ajustes solicitados': { classe: 'border-ajustes/40 bg-ajustes-soft text-ajustes', icone: AlertTriangle },
+  Aprovado: { classe: 'border-aprovado/40 bg-aprovado-soft text-aprovado', icone: CheckCircle2 },
+}
+
+/** Status: retângulo com borda, ícone e texto (não depende só da cor). */
+export function SeloStatusCriativo({ status }: { status: StatusCriativo }) {
+  const { classe, icone: Icone } = ESTILO_STATUS_CRIATIVO[status]
+  return (
+    <span className={cx('inline-flex items-center gap-1 rounded-[6px] border px-1.5 py-0.5 text-[11px] font-semibold', classe)}>
+      <Icone className="size-3" aria-hidden />
+      <span className="sr-only">Status: </span>
+      {status}
+    </span>
+  )
+}
+
+/** Tipo de arquivo: pílula escura com ícone e texto, diferente do selo de status. */
+export function SeloTipo({ tipo, sobreImagem }: { tipo: TipoMidia; sobreImagem?: boolean }) {
+  const Icone = tipo === 'Vídeo' ? Film : ImageIcon
+  return (
+    <span
+      className={cx(
+        'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold',
+        sobreImagem ? 'bg-black/70 text-white' : 'bg-ink text-surface',
+      )}
+    >
+      <Icone className="size-3.5" aria-hidden />
+      <span className="sr-only">Tipo: </span>
+      {tipo}
+    </span>
   )
 }

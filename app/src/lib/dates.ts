@@ -139,3 +139,10 @@ export function formatarCarimbo(iso: string): string {
     minute: '2-digit',
   }).format(new Date(iso))
 }
+
+/** Dia (AAAA-MM-DD) de um carimbo RFC 3339 no fuso de Fortaleza; vazio se ausente ou inválido. */
+export function diaDoCarimbo(iso: string | undefined): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? '' : hoje(d)
+}

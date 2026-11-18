@@ -42,7 +42,7 @@ export function Carregando({ texto = 'Carregando dados…' }: { texto?: string }
 
 export function EstadoErro({ mensagem, onTentar }: { mensagem: string; onTentar: () => void }) {
   return (
-    <div className="card flex flex-col items-center border-red-200 px-6 py-12 text-center" role="alert">
+    <div className="card flex flex-col items-center border-[#f0c7c2] px-6 py-12 text-center" role="alert">
       <AlertTriangle className="mb-3 size-8 text-danger" aria-hidden />
       <p className="font-medium text-ink">Não foi possível carregar os dados.</p>
       <p className="mt-1 max-w-md text-sm text-ink-muted">{mensagem}</p>
@@ -58,7 +58,7 @@ export function AlertaErro({ mensagem }: { mensagem: string }) {
   return (
     <div
       role="alert"
-      className="mb-4 flex items-start gap-2 rounded-[var(--radius-control)] border border-red-200 bg-danger-soft px-3 py-2.5 text-sm text-danger"
+      className="mb-4 flex items-start gap-2 rounded-[var(--radius-control)] border border-[#f0c7c2] bg-danger-soft px-3 py-2.5 text-sm text-danger"
     >
       <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
       <p>{mensagem}</p>

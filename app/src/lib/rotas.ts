@@ -6,7 +6,12 @@ import type { EmpresaId, PaginaId } from '../data/types'
 export interface Rota {
   empresaId: EmpresaId
   pagina: PaginaId
+  /** Subaba do Dashboard (consolidados, detalhamento, publicacoes, registros). */
+  secao?: SecaoDashboard
 }
+
+export const SECOES_DASHBOARD = ['consolidados', 'detalhamento', 'publicacoes', 'registros'] as const
+export type SecaoDashboard = (typeof SECOES_DASHBOARD)[number]
 
 const PADRAO: Rota = { empresaId: EMPRESA_DO_SISTEMA, pagina: 'cronograma' }
 
@@ -19,18 +24,25 @@ export function nomeDaPagina(id: PaginaId): string {
 }
 
 export function hrefDaRota(r: Rota): string {
-  return `#/${r.pagina}`
+  return r.pagina === 'dashboard' && r.secao ? `#/dashboard/${r.secao}` : `#/${r.pagina}`
 }
 
 /**
- * Lê "#/pagina". Endereços antigos "#/centro-liderar/pagina" continuam
- * funcionando; os de outras empresas (fora do escopo desta versão) e
- * qualquer endereço desconhecido caem na rota padrão.
+ * Lê "#/pagina" e "#/dashboard/subaba". Endereços antigos "#/centro-liderar/pagina"
+ * continuam funcionando, e "#/insights" (Insights agora fica dentro do Dashboard)
+ * abre o Dashboard na subaba Registros. Os de outras empresas e qualquer
+ * endereço desconhecido caem na rota padrão.
  */
 export function lerRota(hash: string): Rota | null {
-  const partes = hash.replace(/^#\/?/, '').split('/')
-  const pagina = partes.length === 2 && partes[0] === EMPRESA_DO_SISTEMA ? partes[1] : partes.length === 1 ? partes[0] : ''
-  const p = PAGINAS.find((x) => x.id === pagina)
+  let partes = hash.replace(/^#\/?/, '').split('/')
+  if (partes[0] === EMPRESA_DO_SISTEMA && partes.length >= 2) partes = partes.slice(1)
+  if (partes.length === 1 && partes[0] === 'insights') return { empresaId: EMPRESA_DO_SISTEMA, pagina: 'dashboard', secao: 'registros' }
+  if (partes.length === 2 && partes[0] === 'dashboard') {
+    const secao = SECOES_DASHBOARD.find((s) => s === partes[1])
+    return secao ? { empresaId: EMPRESA_DO_SISTEMA, pagina: 'dashboard', secao } : null
+  }
+  if (partes.length !== 1) return null
+  const p = PAGINAS.find((x) => x.id === partes[0])
   return p ? { empresaId: EMPRESA_DO_SISTEMA, pagina: p.id } : null
 }
 
@@ -43,7 +55,11 @@ export function useRota(): Rota {
     if (!lida) {
       window.history.replaceState(null, '', hrefDaRota(PADRAO))
       setRota(PADRAO)
-    } else setRota(lida)
+      return
+    }
+    // Endereços antigos passam a mostrar o endereço atual (ex.: #/insights → #/dashboard/registros).
+    if (window.location.hash !== hrefDaRota(lida)) window.history.replaceState(null, '', hrefDaRota(lida))
+    setRota(lida)
   }, [])
 
   useEffect(() => {

@@ -67,8 +67,8 @@ export function ProvedorFeedback({ children }: { children: ReactNode }) {
             className={cx(
               'pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-[var(--radius-card)] border px-4 py-3 text-sm shadow-[var(--shadow-overlay)]',
               a.tipo === 'sucesso'
-                ? 'border-green-200 bg-success-soft text-success'
-                : 'border-red-200 bg-danger-soft text-danger',
+                ? 'border-[#c3e0cf] bg-success-soft text-success'
+                : 'border-[#f0c7c2] bg-danger-soft text-danger',
             )}
           >
             {a.tipo === 'sucesso' ? (
